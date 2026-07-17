@@ -1,0 +1,1 @@
+powershell -Command "cd C:\Users\shobhasreenivas\multi-agent-research-lab; python -m pytest tests/unit/ -v --tb=short 2>&1 | Select-Object -First 100"

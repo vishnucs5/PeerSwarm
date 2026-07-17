@@ -1,0 +1,112 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.uv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ruff
+.ruff_cache/
+
+# Docker
+.docker/
+
+# Data files (generated)
+data/knowledge_base/
+data/outputs/
+data/cache/
+data/logs/
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Local config
+.env.local
+.env.*.local
+
+# Keys and secrets
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Model weights
+*.bin
+*.pt
+*.pth
+*.onnx
+*.gguf
+
+# Jupyter
+.ipynb_checkpoints/
+
+# CI/CD
+.github/workflows/*.yml.bak
+
+# OS specific
+*.orig
+*.rej
+.vercel

@@ -1,0 +1,236 @@
+[project]
+name = "multi-agent-research-lab"
+version = "0.1.0"
+description = "Production-grade multi-agent research system with CrewAI Flow orchestration, RAG, memory, and evaluation"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11, <3.13"
+authors = [
+    {name = "Research Lab Team", email = "team@example.com"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    # Core orchestration
+    "crewai>=0.80.0",
+    "crewai-tools>=0.5.0",
+    "langchain>=0.2.0",
+    "langchain-core>=0.2.0",
+    "langchain-openai>=0.1.0",
+    "langchain-anthropic>=0.1.0",
+    "langchain-community>=0.2.0",
+    # LLM providers
+    "openai>=1.30.0",
+    "anthropic>=0.25.0",
+    "litellm>=1.40.0, <1.90.0",
+    # Configuration & validation
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.3.0",
+    "python-dotenv>=1.0.0",
+    # API & Web
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "streamlit>=1.35.0",
+    "sse-starlette>=2.1.0",
+    "python-multipart>=0.0.9",
+    # Storage
+    "chromadb>=0.5.0",
+    "neo4j>=5.18.0",
+    "sqlite-utils>=3.37.0",
+    "redis>=5.0.0",
+    "celery>=5.4.0",
+    # External APIs
+    "arxiv>=2.1.0",
+    "tavily-python>=0.3.0",
+    "google-search-results>=2.4.0",
+    "requests>=2.31.0",
+    "httpx>=0.27.0",
+    # Document processing
+    "pymupdf>=1.23.0",
+    "pdfplumber>=0.11.0",
+    "python-docx>=1.1.0",
+    "markdown>=3.6.0",
+    "weasyprint>=60.0",
+    # Observability
+    "langfuse>=2.10.0",
+    "arize-phoenix>=4.0.0",
+    "prometheus-client>=0.19.0",
+    "structlog>=24.1.0",
+    # Utilities
+    "rich>=13.7.0",
+    "typer>=0.12.0",
+    "pyyaml>=6.0.1",
+    "tenacity>=8.2.0",
+    "tqdm>=4.66.0",
+    "orjson>=3.9.0",
+    "python-dateutil>=2.9.0",
+    "email-validator>=2.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=8.2.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=5.0.0",
+    "pytest-mock>=3.14.0",
+    "pytest-xdist>=3.5.0",
+    "httpx>=0.27.0",
+    "faker>=27.0.0",
+
+    # Code quality
+    "ruff>=0.5.0",
+    "mypy>=1.10.0",
+    "pre-commit>=3.7.0",
+    "bandit>=1.7.0",
+
+    # Type stubs
+    "types-requests>=2.31.0",
+    "types-python-dateutil>=2.9.0",
+    "types-pyyaml>=6.0.0",
+]
+eval = [
+    "ragas>=0.1.0",
+    "deepeval>=0.20.0",
+    "langsmith>=0.1.0",
+]
+local = [
+    "ollama>=0.3.0",
+]
+deploy = [
+    "docker>=7.0.0",
+    "kubernetes>=29.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["src*"]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.2.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.5.0",
+    "mypy>=1.10.0",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "T20", # flake8-print
+    "PTH", # flake8-use-pathlib
+    "ERA", # eradicate
+    "PL",  # pylint
+    "TRY", # tryceratops
+    "ARG", # flake8-unused-arguments
+    "RET", # flake8-return
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "TRY003", # avoid specifying exception type
+    "ARG001", # unused argument
+    "ARG002", # unused argument
+]
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "S106", "S110"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+strict_equality = true
+show_error_codes = true
+pretty = true
+explicit_package_bases = true
+exclude = [
+    ".venv",
+    "venv",
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "crewai",
+    "langchain",
+    "litellm",
+    "arxiv",
+    "tavily",
+    "google_search_results",
+    "fitz",
+    "weasyprint",
+    "weasyprint.text.fonts",
+    "langfuse.decorators",
+    "numpy",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--tb=short",
+    "-ra",
+    "--cov=src",
+    "--cov-report=term-missing",
+    "--cov-report=xml",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "evaluation: Evaluation tests",
+    "slow: Slow tests",
+    "requires_api: Tests requiring API keys",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
+
+[tool.pre-commit-hooks]
+ruff-check = {id = "ruff-check", name = "ruff check", entry = "ruff check", language = "system", types = ["python"]}
+ruff-format = {id = "ruff-format", name = "ruff format", entry = "ruff format", language = "system", types = ["python"]}
+mypy = {id = "mypy", name = "mypy", entry = "mypy", language = "system", types = ["python"]}
+pytest = {id = "pytest", name = "pytest", entry = "pytest", language = "system", types = ["python"], pass_filenames = false}
