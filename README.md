@@ -51,30 +51,70 @@ Standard AI search engines and simple RAG (Retrieval-Augmented Generation) syste
 ## 🤖 Multi-Agent Pipeline & Roles
 
 ```
-                  ┌───────────────────────────────┐
-                  │      Planner Agent (PI)       │
-                  └───────────────┬───────────────┘
-                                  ▼ (Structured Research Plan)
-         ┌────────────────────────┼────────────────────────┐
-         ▼                        ▼                        ▼
-┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
-│  Academic Res.  │      │    Web Res.     │      │   Local KB      │
-│  (Researcher A) │      │  (Researcher B) │      │  (Researcher C) │
-└────────┬────────┘      └────────┬────────┘      └────────┬────────┘
-         │                        │                        │
-         └────────────────────────┼────────────────────────┘
-                                  ▼ (Factual Evidence & Claims)
-                  ┌───────────────────────────────┐
-                  │         Analyst Agent         │
-                  └───────────────┬───────────────┘
-                                  ▼ (Synthesis & Insight Clustering)
-                  ┌───────────────────────────────┐
-                  │         Writer Agent          │
-                  └───────────────┬───────────────┘
-                                  ▼ (Draft Report Generation)
-                  ┌───────────────────────────────┐
-                  │         Critic Agent          │
-                  └───────────────┬───────────────┘
-                                  ├──► [Passed] ──► Final Report Exporter
-                                  └──► [Failed] ──► ↺ Loop back to Res./Analyst (up to 5x)
+                                 [ USER REQUEST ]
+                        (Streamlit UI / Typer CLI / REST API)
+                                         │
+                                         ▼
+                      ┌─────────────────────────────────────┐
+                      │        Planner Agent (PI)           │
+                      │  (Decomposes into Sub-Questions)    │
+                      └──────────────────┬──────────────────┘
+                                         │ (Structured Research Plan)
+         ┌───────────────────────────────┼───────────────────────────────┐
+         ▼ (Academic Deep)               ▼ (Industry Survey)             ▼ (Local KB Search)
+┌─────────────────────────┐     ┌─────────────────────────┐     ┌─────────────────────────┐
+│     Academic Res.       │     │        Web Res.         │     │        Local KB         │
+│     (Researcher A)      │     │     (Researcher B)      │     │     (Researcher C)      │
+└────────┬────────────────┘     └────────┬────────────────┘     └────────┬────────────────┘
+         │ (Semantic Scholar API)        │ (Tavily/Serper Search)        │ (Local ChromaDB Read)
+         ▼                               ▼                               ▼
+         └───────────────────────────────┼───────────────────────────────┘
+                                         │ (Raw Factual Claims & Citations)
+                                         ▼
+                      ┌─────────────────────────────────────┐
+                      │            Analyst Agent            │◄───────────────────────┐
+                      │  (Clusters Claims & Resolves Gaps)   ├────────────────┐       │
+                      └──────────────────┬──────────────────┘                │       │
+                                         │                                   │       │
+                                         ├─────────────────────────────┐     │       │
+                                         │ (Entity-Relation Extraction)│     │       │
+                                         ▼                             ▼     │       │
+                              ┌────────────────────┐        ┌────────────────┐       │
+                              │    Neo4j Graph     │        │ Supabase Run   │       │
+                              │  (Knowledge Base)  │        │ (State Sync)   │       │
+                              └────────────────────┘        └────────────────┘       │
+                                         │ (Synthesized Narrative)           │       │
+                                         ▼                                   │       │
+                      ┌─────────────────────────────────────┐                │       │
+                      │            Writer Agent             │                │       │
+                      │   (Drafts Markdown with Citations)  │                │       │
+                      └──────────────────┬──────────────────┘                │       │
+                                         │ (Draft Research Report)           │       │
+                                         ▼                                   │       │
+                      ┌─────────────────────────────────────┐                │       │
+                      │            Critic Agent             │                │       │
+                      │   (Evaluates against Quality Gates) │                │       │
+                      └──────────────────┬──────────────────┘                │       │
+                                         │                                   │       │
+                     [Has Quality Passed?]                                   │       │
+                       ├───► [Passed] ───┼───────────────────────────────────┼───────┘
+                       │                 │ (Write Report Run Logs)           │
+                       │                 ▼                                   ▼
+                       │       ┌────────────────────┐             ┌────────────────────┐
+                       │       │ SQLite Run History │             │ Exporter Component │
+                       │       │   (Local DB Logs)  │             │ (Markdown / JSON)  │
+                       │       └────────────────────┘             └────────────────────┘
+                       │                                                     │
+                       │                                                     ▼
+                       │                                              [ FINAL REPORT ]
+                       │
+                       └───► [Failed (<6/10 Hard Gate / Soft Gate)]
+                                         │
+                                         ▼
+                             (Triggers Revision Loop)
+                      ┌─────────────────────────────────────┐
+                      │           Revision Task             │
+                      │ (Extracts Critique Recommendations) ├────────────────────────┘
+                      └─────────────────────────────────────┘
+                                   (Max 5 Iterations)
 ```
