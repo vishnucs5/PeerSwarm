@@ -11,6 +11,12 @@ from urllib.parse import urlparse
 
 from src.config import get_settings
 from src.utils.logger import get_logger
+from src.utils.resilience import (
+    RetryConfig,
+    tavily_circuit_breaker,
+    serper_circuit_breaker,
+    retry_with_backoff,
+)
 
 logger = get_logger(__name__)
 
@@ -194,17 +200,31 @@ class WebSearchTool:
         return []
 
     def _search_tavily(self, query: str, max_results: int = 5) -> list[WebSearchResult]:
-        """Search using Tavily API."""
-        try:
+        """Search using Tavily API with retry and circuit breaker."""
+        retry_config = RetryConfig(
+            max_attempts=3,
+            base_delay=1.0,
+            max_delay=15.0,
+            retryable_exceptions=(ConnectionError, TimeoutError),
+        )
+
+        def _do_search():
             response = self.tavily_client.search(
                 query=query,
                 max_results=max_results,
                 include_answer=False,
             )
+            return response
+
+        try:
+            response = retry_with_backoff(
+                _do_search,
+                config=retry_config,
+                circuit_breaker=tavily_circuit_breaker,
+            )
             results = []
             for r in response.get("results", []):
                 url = r.get("url", "")
-                # Validate URL before adding to results
                 allowed, error = is_url_allowed(url, self.allowed_domains, self.blocked_domains)
                 if not allowed:
                     logger.warning(f"Blocked URL from Tavily results: {url} ({error})")
@@ -223,9 +243,17 @@ class WebSearchTool:
             return []
 
     def _search_serper(self, query: str, max_results: int = 5) -> list[WebSearchResult]:
-        """Search using Serper API."""
-        try:
-            import requests
+        """Search using Serper API with retry and circuit breaker."""
+        import requests
+
+        retry_config = RetryConfig(
+            max_attempts=3,
+            base_delay=1.0,
+            max_delay=15.0,
+            retryable_exceptions=(ConnectionError, TimeoutError),
+        )
+
+        def _do_search():
             response = requests.post(
                 "https://google.serper.dev/search",
                 json={"q": query, "num": max_results},
@@ -233,12 +261,17 @@ class WebSearchTool:
                 timeout=30,
             )
             response.raise_for_status()
-            data = response.json()
+            return response.json()
 
+        try:
+            data = retry_with_backoff(
+                _do_search,
+                config=retry_config,
+                circuit_breaker=serper_circuit_breaker,
+            )
             results = []
             for r in data.get("organic", []):
                 url = r.get("link", "")
-                # Validate URL before adding to results
                 allowed, error = is_url_allowed(url, self.allowed_domains, self.blocked_domains)
                 if not allowed:
                     logger.warning(f"Blocked URL from Serper results: {url} ({error})")

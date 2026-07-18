@@ -62,7 +62,7 @@ def health() -> HealthResponse:
 
 
 @app.post("/api/v1/research")
-def create_research(req: ResearchRequest) -> dict[str, Any]:
+async def create_research(req: ResearchRequest) -> dict[str, Any]:
     if not req.question.strip() or len(req.question.strip()) < 10:
         raise HTTPException(status_code=400, detail="Question must be at least 10 characters")
 
@@ -77,7 +77,7 @@ def create_research(req: ResearchRequest) -> dict[str, Any]:
         update_job(job["id"], {"status": "planning"})
 
         t0 = time.time()
-        data = generate_research(req.question.strip(), API_KEY)
+        data = await generate_research(req.question.strip(), API_KEY)
         elapsed = time.time() - t0
 
         sections = []

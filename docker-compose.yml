@@ -111,7 +111,7 @@ services:
       - "7474:7474"  # HTTP
       - "7687:7687"  # Bolt
     environment:
-      - NEO4J_AUTH=neo4j/password
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:-changeme-strong-password}
       - NEO4J_PLUGINS=["apoc"]
       - NEO4J_dbms_security_procedures_unrestricted=apoc.*
       - NEO4J_server_memory_heap_initial__size=512m
@@ -122,7 +122,7 @@ services:
       - neo4j_logs:/logs
       - neo4j_import:/var/lib/neo4j/import
     healthcheck:
-      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "password", "RETURN 1"]
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "${NEO4J_PASSWORD:-changeme-strong-password}", "RETURN 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -160,9 +160,9 @@ services:
       - "3000:3000"
     environment:
       - DATABASE_URL=postgresql://langfuse:langfuse@langfuse-db:5432/langfuse
-      - NEXTAUTH_SECRET=changeme-in-production
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-changeme-in-production}
       - NEXTAUTH_URL=http://localhost:3000
-      - SALT=changeme-in-production
+      - SALT=${LANGFUSE_SALT:-changeme-in-production}
       - LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES=true
     depends_on:
       langfuse-db:
@@ -177,7 +177,7 @@ services:
     image: postgres:15-alpine
     environment:
       - POSTGRES_USER=langfuse
-      - POSTGRES_PASSWORD=langfuse
+      - POSTGRES_PASSWORD=${LANGFUSE_DB_PASSWORD:-changeme-strong-password}
       - POSTGRES_DB=langfuse
     volumes:
       - langfuse_db_data:/var/lib/postgresql/data
@@ -186,6 +186,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+      start_period: 10s
     restart: unless-stopped
     deploy:
       resources:
@@ -219,7 +220,7 @@ services:
       - "3001:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-changeme-strong-password}
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
     volumes:
       - grafana_data:/var/lib/grafana

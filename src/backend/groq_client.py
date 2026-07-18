@@ -7,6 +7,14 @@ from typing import Any
 
 from groq import Groq
 
+from src.utils.resilience import (
+    RetryConfig,
+    groq_circuit_breaker,
+    retry_with_backoff,
+)
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 SYSTEM_PROMPT = """You are a senior research scientist. Given a research question, produce a structured JSON response with these exact keys:
 - "executive_summary": A 2-3 paragraph summary of findings (markdown)
@@ -29,7 +37,8 @@ def _clean_json(text: str) -> str:
     return text.strip()
 
 
-def generate_research(question: str, api_key: str) -> dict[str, Any]:
+def _call_groq_api(question: str, api_key: str) -> dict[str, Any]:
+    """Internal function to call Groq API (for retry logic)."""
     client = Groq(api_key=api_key)
 
     resp = client.chat.completions.create(
@@ -45,7 +54,29 @@ def generate_research(question: str, api_key: str) -> dict[str, Any]:
 
     raw = resp.choices[0].message.content or "{}"
     cleaned = _clean_json(raw)
-    data = json.loads(cleaned)
+    return json.loads(cleaned)
+
+
+async def generate_research(question: str, api_key: str) -> dict[str, Any]:
+    """Generate research report using Groq API with retry and circuit breaker."""
+    retry_config = RetryConfig(
+        max_attempts=3,
+        base_delay=1.0,
+        max_delay=15.0,
+        retryable_exceptions=(ConnectionError, TimeoutError, Exception),
+    )
+
+    try:
+        data = await retry_with_backoff(
+            _call_groq_api,
+            question,
+            api_key,
+            config=retry_config,
+            circuit_breaker=groq_circuit_breaker,
+        )
+    except Exception as e:
+        logger.error(f"Groq API failed after retries: {e}")
+        raise
 
     sections = data.get("sections", [])
     if isinstance(sections, list):

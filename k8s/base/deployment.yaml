@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: research-lab-api
+  labels:
+    app: research-lab
+    component: api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: research-lab
+      component: api
+  template:
+    metadata:
+      labels:
+        app: research-lab
+        component: api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: api
+          image: ghcr.io/your-org/multi-agent-research-lab:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: API_HOST
+              value: "0.0.0.0"
+            - name: API_PORT
+              value: "8000"
+          envFrom:
+            - secretRef:
+                name: research-lab-secrets
+            - configMapRef:
+                name: research-lab-config
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 2
+          startupProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            initialDelaySeconds: 0
+            periodSeconds: 5
+            failureThreshold: 30
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: research-lab-worker
+  labels:
+    app: research-lab
+    component: worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: research-lab
+      component: worker
+  template:
+    metadata:
+      labels:
+        app: research-lab
+        component: worker
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: worker
+          image: ghcr.io/your-org/multi-agent-research-lab:latest
+          imagePullPolicy: Always
+          command: ["celery", "-A", "src.api.celery_app", "worker", "--loglevel=info", "--concurrency=4"]
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          envFrom:
+            - secretRef:
+                name: research-lab-secrets
+            - configMapRef:
+                name: research-lab-config
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"

@@ -14,6 +14,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.auth import APIKeyMiddleware
 from src.api.rate_limiter import RateLimitMiddleware
+from src.api.security_headers import add_security_headers
+from src.api.error_handlers import add_error_handlers
 from src.config import get_settings
 from src.utils.logger import get_logger
 from src.utils.metrics import add_metrics_endpoint, add_metrics_middleware
@@ -118,6 +120,9 @@ def create_app() -> FastAPI:
 
     app.add_middleware(RateLimitMiddleware)
     app.add_middleware(APIKeyMiddleware)
+
+    add_security_headers(app)
+    add_error_handlers(app)
 
     from src.api.routes import router
     app.include_router(router, prefix="/api/v1")

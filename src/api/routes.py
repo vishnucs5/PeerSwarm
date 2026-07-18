@@ -672,15 +672,34 @@ async def cancel_job(job_id: str, request: Request):
 
 # ── WebSocket Endpoint ──────────────────────────────────────────────
 
+def _validate_ws_auth(websocket: WebSocket) -> bool:
+    """Validate API key for WebSocket connections when auth is enabled."""
+    settings = get_settings()
+    if not settings.security.api_key_enabled:
+        return True
+
+    api_key = websocket.query_params.get("api_key")
+    if not api_key:
+        api_key = websocket.headers.get("x-api-key")
+
+    if not api_key:
+        return False
+
+    return api_key in settings.security.api_keys
+
+
 @router.websocket("/ws/research/{job_id}")
 async def websocket_research(websocket: WebSocket, job_id: str):
     """WebSocket endpoint for real-time job updates."""
+    if not _validate_ws_auth(websocket):
+        await websocket.close(code=4001, reason="Unauthorized")
+        return
+
     from src.api.websocket_manager import get_connection_manager
     ws = get_connection_manager()
     await ws.connect(websocket, job_id)
     try:
         while True:
-            # Keep connection alive, handle client pings
             data = await websocket.receive_text()
             if data == "ping":
                 await websocket.send_text(json.dumps({"event": "pong", "job_id": job_id}))
@@ -695,6 +714,15 @@ async def websocket_research(websocket: WebSocket, job_id: str):
 @router.get("/research/{job_id}/stream")
 async def stream_research(job_id: str, request: Request):
     """Server-Sent Events stream for job updates."""
+    settings = get_settings()
+    if settings.security.api_key_enabled:
+        api_key = request.query_params.get("api_key") or request.headers.get("x-api-key")
+        if not api_key or api_key not in settings.security.api_keys:
+            from starlette.responses import JSONResponse
+            return JSONResponse(
+                status_code=401,
+                content={"error": "Unauthorized", "detail": "Missing or invalid API key"},
+            )
 
     async def event_generator() -> AsyncGenerator[str, None]:
         from src.api.websocket_manager import get_connection_manager

@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: research-lab-api
+  labels:
+    app: research-lab
+    component: api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+      name: http
+  selector:
+    app: research-lab
+    component: api
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: research-lab-config
+data:
+  CHROMA_HOST: "chromadb"
+  CHROMA_PORT: "8000"
+  NEO4J_URI: "bolt://neo4j:7687"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  CELERY_BROKER_URL: "redis://redis:6379/0"
+  CELERY_RESULT_BACKEND: "redis://redis:6379/1"
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+  ENABLE_LANGFUSE: "false"
+  ENABLE_PROMETHEUS: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: research-lab-secrets
+type: Opaque
+stringData:
+  NEO4J_PASSWORD: "changeme-strong-password"
+  SUPABASE_URL: ""
+  SUPABASE_ANON_KEY: ""
+  SUPABASE_SERVICE_KEY: ""
+  GROQ_API_KEY: ""
+  TAVILY_API_KEY: ""
+  SERPER_API_KEY: ""
+  SECRET_KEY: "changeme-generate-with-python-m-secrets-token-urlsafe-64"
+  ENCRYPTION_KEY: "changeme-generate-with-python-m-secrets-token-urlsafe-32"
