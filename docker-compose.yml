@@ -24,7 +24,6 @@ services:
     volumes:
       - ./data:/app/data
       - ./src:/app/src
-      - ./ui:/app/ui
     depends_on:
       chromadb:
         condition: service_healthy

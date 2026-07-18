@@ -43,11 +43,9 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Set working directory
 WORKDIR /app
 
-# Copy application code
 COPY --chown=appuser:appuser src/ ./src/
-COPY --chown=appuser:appuser ui/ ./ui/
-COPY --chown=appuser:appuser scripts/ ./scripts/
 COPY --chown=appuser:appuser pyproject.toml ./
+
 
 # Create data directories
 RUN mkdir -p /app/data/knowledge_base /app/data/outputs /app/data/cache /app/data/logs && \
