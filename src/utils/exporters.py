@@ -94,6 +94,8 @@ def export_markdown(report: FinalReport, output_path: Path | None = None) -> Pat
 
     if output_path is None:
         output_path = Path(f"data/outputs/{report.id}.md")
+    else:
+        output_path = Path(output_path)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(markdown, encoding="utf-8")
@@ -114,6 +116,8 @@ def export_pdf(report: FinalReport, output_path: Path | None = None) -> Path:
 
     if output_path is None:
         output_path = Path(f"data/outputs/{report.id}.pdf")
+    else:
+        output_path = Path(output_path)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -237,6 +241,8 @@ def export_json(report: FinalReport, output_path: Path | None = None) -> Path:
 
     if output_path is None:
         output_path = Path(f"data/outputs/{report.id}.json")
+    else:
+        output_path = Path(output_path)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
