@@ -19,7 +19,8 @@ COPY pyproject.toml uv.lock* ./
 
 # Create virtual environment and install dependencies
 RUN uv venv /opt/venv && \
-    /opt/venv/bin/uv pip install --no-cache -r pyproject.toml
+    uv pip install --no-cache --python /opt/venv/bin/python -r pyproject.toml
+
 
 # Production stage
 FROM python:3.11-slim AS runtime
