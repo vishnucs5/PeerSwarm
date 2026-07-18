@@ -4,6 +4,7 @@ import os
 from typing import Any
 
 from dotenv import load_dotenv
+
 from supabase import Client, create_client
 
 load_dotenv()
@@ -24,8 +25,7 @@ def get_supabase() -> Client:
 
     if not url or not key:
         raise RuntimeError(
-            "Supabase not configured. Set SUPABASE_URL and SUPABASE_SERVICE_KEY "
-            "in your .env file."
+            "Supabase not configured. Set SUPABASE_URL and SUPABASE_SERVICE_KEY in your .env file."
         )
 
     _url = url
@@ -43,13 +43,15 @@ def create_job(
     sb = get_supabase()
     result = (
         sb.table("jobs")
-        .insert({
-            "question": question,
-            "max_iterations": max_iterations,
-            "tags": tags or [],
-            "priority": priority,
-            "status": "queued",
-        })
+        .insert(
+            {
+                "question": question,
+                "max_iterations": max_iterations,
+                "tags": tags or [],
+                "priority": priority,
+                "status": "queued",
+            }
+        )
         .execute()
     )
     return result.data[0]
@@ -57,34 +59,19 @@ def create_job(
 
 def update_job(job_id: str, data: dict[str, Any]) -> dict[str, Any]:
     sb = get_supabase()
-    result = (
-        sb.table("jobs")
-        .update(data)
-        .eq("id", job_id)
-        .execute()
-    )
+    result = sb.table("jobs").update(data).eq("id", job_id).execute()
     return result.data[0] if result.data else {}
 
 
 def get_job(job_id: str) -> dict[str, Any] | None:
     sb = get_supabase()
-    result = (
-        sb.table("jobs")
-        .select("*")
-        .eq("id", job_id)
-        .execute()
-    )
+    result = sb.table("jobs").select("*").eq("id", job_id).execute()
     return result.data[0] if result.data else None
 
 
 def get_job_result(job_id: str) -> dict[str, Any] | None:
     sb = get_supabase()
-    result = (
-        sb.table("job_results")
-        .select("*")
-        .eq("job_id", job_id)
-        .execute()
-    )
+    result = sb.table("job_results").select("*").eq("job_id", job_id).execute()
     return result.data[0] if result.data else None
 
 
@@ -99,9 +86,5 @@ def list_jobs(limit: int = 50, status: str | None = None) -> list[dict[str, Any]
 
 def insert_result(job_id: str, data: dict[str, Any]) -> dict[str, Any]:
     sb = get_supabase()
-    result = (
-        sb.table("job_results")
-        .insert({**data, "job_id": job_id})
-        .execute()
-    )
+    result = sb.table("job_results").insert({**data, "job_id": job_id}).execute()
     return result.data[0]

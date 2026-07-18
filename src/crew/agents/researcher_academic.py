@@ -1,6 +1,7 @@
 """
 Academic researcher agent - searches for academic papers and technical literature.
 """
+
 from __future__ import annotations
 
 from src.config import get_model_for_agent
@@ -43,6 +44,7 @@ distill complex technical information into clear, usable findings.""",
         logger.info(f"Academic researching: {sub_question[:60]}...")
 
         from src.tools.arxiv_tool import get_arxiv_tool
+
         arxiv = get_arxiv_tool()
 
         findings = []
@@ -84,5 +86,7 @@ distill complex technical information into clear, usable findings.""",
         return findings
 
 
-def create_academic_researcher(model: str | None = None, verbose: bool = False) -> AcademicResearcherAgent:
+def create_academic_researcher(
+    model: str | None = None, verbose: bool = False
+) -> AcademicResearcherAgent:
     return AcademicResearcherAgent(model=model, verbose=verbose)

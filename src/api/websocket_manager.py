@@ -1,6 +1,7 @@
 """
 WebSocket manager for real-time job updates.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -50,12 +51,14 @@ class ConnectionManager:
         if not connections:
             return
 
-        message = json.dumps({
-            "event": event,
-            "job_id": job_id,
-            "data": data,
-            "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
-        })
+        message = json.dumps(
+            {
+                "event": event,
+                "job_id": job_id,
+                "data": data,
+                "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            }
+        )
 
         stale = set()
         for ws in connections:
@@ -73,29 +76,45 @@ class ConnectionManager:
 
     async def broadcast_status(self, job_id: str, status: str, **extra):
         """Convenience: broadcast a status update."""
-        await self.broadcast(job_id, "status_update", {
-            "status": status,
-            **extra,
-        })
+        await self.broadcast(
+            job_id,
+            "status_update",
+            {
+                "status": status,
+                **extra,
+            },
+        )
 
     async def broadcast_quality(self, job_id: str, score: dict[str, Any], iteration: int):
         """Broadcast quality score update."""
-        await self.broadcast(job_id, "quality_update", {
-            "score": score,
-            "iteration": iteration,
-        })
+        await self.broadcast(
+            job_id,
+            "quality_update",
+            {
+                "score": score,
+                "iteration": iteration,
+            },
+        )
 
     async def broadcast_complete(self, job_id: str, report_path: str | None = None):
         """Broadcast job completion."""
-        await self.broadcast(job_id, "job_complete", {
-            "report_path": report_path,
-        })
+        await self.broadcast(
+            job_id,
+            "job_complete",
+            {
+                "report_path": report_path,
+            },
+        )
 
     async def broadcast_error(self, job_id: str, error: str):
         """Broadcast job error."""
-        await self.broadcast(job_id, "job_error", {
-            "error": error,
-        })
+        await self.broadcast(
+            job_id,
+            "job_error",
+            {
+                "error": error,
+            },
+        )
 
     def connected_count(self) -> int:
         """Total connected clients."""

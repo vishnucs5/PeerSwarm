@@ -1,6 +1,7 @@
 """
 FastAPI application server.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -13,9 +14,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.auth import APIKeyMiddleware
+from src.api.error_handlers import add_error_handlers
 from src.api.rate_limiter import RateLimitMiddleware
 from src.api.security_headers import add_security_headers
-from src.api.error_handlers import add_error_handlers
 from src.config import get_settings
 from src.utils.logger import get_logger
 from src.utils.metrics import add_metrics_endpoint, add_metrics_middleware
@@ -62,7 +63,9 @@ async def _cancel_pending_tasks(app: FastAPI) -> None:
     completed = len(done)
     still_running = len(pending_wait)
     if still_running:
-        logger.warning(f"{still_running} job(s) did not finish within {SHUTDOWN_TIMEOUT}s — force-closing")
+        logger.warning(
+            f"{still_running} job(s) did not finish within {SHUTDOWN_TIMEOUT}s — force-closing"
+        )
         for task in pending_wait:
             task.cancel()
     logger.info(f"Shutdown complete: {completed} cancelled, {still_running} force-closed")
@@ -80,9 +83,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     try:
         from src.memory.history import get_run_history
+
         get_run_history()
         logger.info("SQLite run history initialized")
         from src.config import get_settings
+
         logger.info(f"CELERY_BROKER_URL: {get_settings().celery_broker_url}")
     except Exception as e:
         logger.warning(f"SQLite init failed (will use in-memory only): {e}")
@@ -93,6 +98,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await _cancel_pending_tasks(app)
 
     from src.api.websocket_manager import get_connection_manager
+
     mgr = get_connection_manager()
     ws_count = mgr.connected_count()
     if ws_count:
@@ -125,6 +131,7 @@ def create_app() -> FastAPI:
     add_error_handlers(app)
 
     from src.api.routes import router
+
     app.include_router(router, prefix="/api/v1")
 
     @app.get("/")
@@ -134,7 +141,7 @@ def create_app() -> FastAPI:
             "service": "Multi-Agent Research Lab API",
             "version": "0.1.0",
             "docs": "/docs",
-            "health": "/api/v1/health"
+            "health": "/api/v1/health",
         }
 
     @app.get("/api/v1")
@@ -142,11 +149,9 @@ def create_app() -> FastAPI:
         return {
             "status": "alive",
             "version": "v1",
-            "endpoints": {
-                "health": "/api/v1/health",
-                "research": "/api/v1/research"
-            }
+            "endpoints": {"health": "/api/v1/health", "research": "/api/v1/research"},
         }
+
     add_metrics_middleware(app)
     add_metrics_endpoint(app)
 

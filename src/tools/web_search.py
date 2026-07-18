@@ -1,6 +1,7 @@
 """
 Web search tool using Tavily or Serper API with URL validation and SSRF protection.
 """
+
 from __future__ import annotations
 
 import ipaddress
@@ -13,9 +14,9 @@ from src.config import get_settings
 from src.utils.logger import get_logger
 from src.utils.resilience import (
     RetryConfig,
-    tavily_circuit_breaker,
-    serper_circuit_breaker,
     retry_with_backoff,
+    serper_circuit_breaker,
+    tavily_circuit_breaker,
 )
 
 logger = get_logger(__name__)
@@ -40,7 +41,7 @@ ALLOWED_SCHEMES = {"https"}
 DEFAULT_BLOCKED_DOMAINS = {
     "localhost",
     "127.0.0.1",
-    "0.0.0.0",
+    "0.0.0.0",  # nosec B104
     "::1",
     "metadata.google.internal",
     "metadata",
@@ -60,52 +61,55 @@ def is_private_ip(ip: str) -> bool:
 def resolve_hostname(hostname: str) -> list[str]:
     """Resolve hostname to IP addresses."""
     import socket
+
     try:
         return [info[4][0] for info in socket.getaddrinfo(hostname, None)]
     except Exception:
         return []
 
 
-def is_url_allowed(url: str, allowed_domains: list[str] | None = None, blocked_domains: set[str] | None = None) -> tuple[bool, str | None]:
+def is_url_allowed(
+    url: str, allowed_domains: list[str] | None = None, blocked_domains: set[str] | None = None
+) -> tuple[bool, str | None]:
     """
     Validate URL for SSRF protection.
-    
+
     Returns:
         Tuple of (is_allowed, error_message)
     """
     if not url or not isinstance(url, str):
         return False, "Invalid URL"
-    
+
     try:
         parsed = urlparse(url)
     except Exception:
         return False, "Invalid URL format"
-    
+
     # Check scheme
     if parsed.scheme not in ALLOWED_SCHEMES:
         return False, f"Scheme '{parsed.scheme}' not allowed. Only HTTPS is permitted."
-    
+
     # Check hostname
     hostname = parsed.hostname
     if not hostname:
         return False, "Missing hostname"
-    
+
     # Check blocked domains
     blocked = blocked_domains or DEFAULT_BLOCKED_DOMAINS
     if hostname.lower() in blocked:
         return False, f"Domain '{hostname}' is blocked"
-    
+
     # Check allowed domains if specified
     if allowed_domains:
         if not any(hostname.lower().endswith(domain.lower()) for domain in allowed_domains):
             return False, f"Domain '{hostname}' not in allowed list"
-    
+
     # Resolve and check for private IPs
     ips = resolve_hostname(hostname)
     for ip in ips:
         if is_private_ip(ip):
             return False, f"URL resolves to private IP address: {ip}"
-    
+
     # Check for suspicious patterns
     suspicious_patterns = [
         r"^https?://\d+\.\d+\.\d+\.\d+",  # Direct IP access
@@ -114,7 +118,7 @@ def is_url_allowed(url: str, allowed_domains: list[str] | None = None, blocked_d
     for pattern in suspicious_patterns:
         if re.search(pattern, url):
             return False, "Suspicious URL pattern detected"
-    
+
     return True, None
 
 
@@ -122,19 +126,22 @@ def sanitize_search_query(query: str, max_length: int = 500) -> str:
     """Sanitize search query input."""
     if not query or not isinstance(query, str):
         return ""
-    
+
     # Remove control characters
-    sanitized = "".join(ch for ch in query if ch == "\n" or ch == "\t" or ch == "\r" or ord(ch) >= 32)
-    
+    sanitized = "".join(
+        ch for ch in query if ch == "\n" or ch == "\t" or ch == "\r" or ord(ch) >= 32
+    )
+
     # Limit length
     if len(sanitized) > max_length:
         sanitized = sanitized[:max_length]
-    
+
     return sanitized.strip()
 
 
 class WebSearchResult:
     """Single web search result."""
+
     def __init__(self, title: str, url: str, content: str, source: str = "web", score: float = 0.0):
         self.title = title
         self.url = url
@@ -162,7 +169,7 @@ class WebSearchTool:
         self.serper_api_key = settings.api_keys.serper_api_key
         self._tavily_client = None
         self._serper_client = None
-        
+
         # Load allowed/blocked domains from settings
         self.allowed_domains = settings.security.allowed_domains or None
         self.blocked_domains = DEFAULT_BLOCKED_DOMAINS.copy()
@@ -172,6 +179,7 @@ class WebSearchTool:
         if self._tavily_client is None and self.tavily_api_key:
             try:
                 from tavily import TavilyClient
+
                 self._tavily_client = TavilyClient(api_key=self.tavily_api_key)
             except ImportError:
                 logger.warning("tavily-python not installed")
@@ -181,6 +189,7 @@ class WebSearchTool:
     def serper_client(self):
         if self._serper_client is None and self.serper_api_key:
             import requests
+
             self._serper_client = requests.Session()
         return self._serper_client
 
@@ -191,7 +200,7 @@ class WebSearchTool:
         if not sanitized_query:
             logger.warning("Empty search query after sanitization")
             return []
-        
+
         if self.tavily_client:
             return self._search_tavily(sanitized_query, max_results)
         if self.serper_api_key:
@@ -229,13 +238,15 @@ class WebSearchTool:
                 if not allowed:
                     logger.warning(f"Blocked URL from Tavily results: {url} ({error})")
                     continue
-                results.append(WebSearchResult(
-                    title=r.get("title", ""),
-                    url=url,
-                    content=r.get("content", ""),
-                    source="tavily",
-                    score=r.get("score", 0.0),
-                ))
+                results.append(
+                    WebSearchResult(
+                        title=r.get("title", ""),
+                        url=url,
+                        content=r.get("content", ""),
+                        source="tavily",
+                        score=r.get("score", 0.0),
+                    )
+                )
             logger.info(f"Tavily search '{query[:50]}' returned {len(results)} results")
             return results
         except Exception as e:
@@ -276,13 +287,15 @@ class WebSearchTool:
                 if not allowed:
                     logger.warning(f"Blocked URL from Serper results: {url} ({error})")
                     continue
-                results.append(WebSearchResult(
-                    title=r.get("title", ""),
-                    url=url,
-                    content=r.get("snippet", ""),
-                    source="serper",
-                    score=1.0 - (results.index(r) * 0.1) if results else 1.0,
-                ))
+                results.append(
+                    WebSearchResult(
+                        title=r.get("title", ""),
+                        url=url,
+                        content=r.get("snippet", ""),
+                        source="serper",
+                        score=1.0 - (results.index(r) * 0.1) if results else 1.0,
+                    )
+                )
             logger.info(f"Serper search '{query[:50]}' returned {len(results)} results")
             return results
         except Exception as e:

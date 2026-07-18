@@ -1,6 +1,7 @@
 """
 Metrics and evaluation utilities for quality assessment.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -31,7 +32,9 @@ def _get_dimension_values(score: QualityScore) -> dict[str, int]:
     }
 
 
-def compute_weighted_score(scores: dict[str, int], weights: dict[str, float] | None = None) -> float:
+def compute_weighted_score(
+    scores: dict[str, int], weights: dict[str, float] | None = None
+) -> float:
     """Compute weighted average of dimension scores."""
     default_weights = {
         "factual_accuracy": 0.30,

@@ -1,6 +1,7 @@
 """
 Flow state management for CrewAI Flows.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -14,6 +15,7 @@ from src.models.research import FinalReport, ResearchFinding, ResearchPlan, Synt
 
 class TokenUsage(BaseTokenUsage):
     """Token usage tracking with per-agent breakdown."""
+
     by_agent: dict[str, dict[str, int]] = Field(default_factory=dict)
     by_model: dict[str, dict[str, int]] = Field(default_factory=dict)
 
@@ -130,5 +132,3 @@ class ResearchState(BaseModel):
             "writing": "revise_writing",
         }
         return priority_to_action.get(self.quality_score.revision_priority, "revise_analysis")
-
-

@@ -1,6 +1,7 @@
 """
 Tests for API key authentication middleware.
 """
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -36,6 +37,7 @@ class TestAPIKeyMiddleware:
     @pytest.mark.asyncio
     async def test_passthrough_when_disabled(self):
         from src.api.auth import APIKeyMiddleware
+
         app = MagicMock()
         middleware = APIKeyMiddleware(app)
         with patch("src.api.auth.get_settings") as mock_settings:
@@ -46,6 +48,7 @@ class TestAPIKeyMiddleware:
     @pytest.mark.asyncio
     async def test_public_paths_bypass_auth(self):
         from src.api.auth import APIKeyMiddleware
+
         app = MagicMock()
         middleware = APIKeyMiddleware(app)
         with patch("src.api.auth.get_settings") as mock_settings:
@@ -58,6 +61,7 @@ class TestAPIKeyMiddleware:
     @pytest.mark.asyncio
     async def test_missing_key_returns_401(self):
         from src.api.auth import APIKeyMiddleware
+
         app = MagicMock()
         middleware = APIKeyMiddleware(app)
         with patch("src.api.auth.get_settings") as mock_settings:
@@ -71,6 +75,7 @@ class TestAPIKeyMiddleware:
     @pytest.mark.asyncio
     async def test_invalid_key_returns_403(self):
         from src.api.auth import APIKeyMiddleware
+
         app = MagicMock()
         middleware = APIKeyMiddleware(app)
         with patch("src.api.auth.get_settings") as mock_settings:
@@ -84,6 +89,7 @@ class TestAPIKeyMiddleware:
     @pytest.mark.asyncio
     async def test_valid_key_passes(self):
         from src.api.auth import APIKeyMiddleware
+
         app = MagicMock()
         middleware = APIKeyMiddleware(app)
         with patch("src.api.auth.get_settings") as mock_settings:
@@ -95,6 +101,7 @@ class TestAPIKeyMiddleware:
     @pytest.mark.asyncio
     async def test_options_preflight_bypasses_auth(self):
         from src.api.auth import APIKeyMiddleware
+
         app = MagicMock()
         middleware = APIKeyMiddleware(app)
         with patch("src.api.auth.get_settings") as mock_settings:
@@ -112,7 +119,9 @@ class TestAPIKeyMiddleware:
             request.headers = Headers(scope=scope)
             response = MagicMock()
             response.status_code = 200
+
             async def call_next(req):
                 return response
+
             result = await middleware.dispatch(request, call_next)
             assert result.status_code == 200

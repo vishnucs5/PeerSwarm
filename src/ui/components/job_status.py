@@ -3,8 +3,7 @@ from __future__ import annotations
 import streamlit as st
 
 from src.ui.components.api_client import api_get
-from src.ui.components.styling import metric_card, status_dot
-
+from src.ui.components.styling import metric_card
 
 PIPELINE_STEPS = [
     {"id": "planning", "label": "Planning", "icon": "📋"},
@@ -15,9 +14,27 @@ PIPELINE_STEPS = [
 ]
 
 AGENTS = [
-    {"id": "researcher_a", "name": "Researcher A", "role": "Academic Sources", "icon": "📚", "source": "arXiv & Semantic Scholar"},
-    {"id": "researcher_b", "name": "Researcher B", "role": "Web Search", "icon": "🌐", "source": "Search Engines & Web"},
-    {"id": "researcher_c", "name": "Researcher C", "role": "Knowledge Base", "icon": "🗃️", "source": "ChromaDB & Neo4j"},
+    {
+        "id": "researcher_a",
+        "name": "Researcher A",
+        "role": "Academic Sources",
+        "icon": "📚",
+        "source": "arXiv & Semantic Scholar",
+    },
+    {
+        "id": "researcher_b",
+        "name": "Researcher B",
+        "role": "Web Search",
+        "icon": "🌐",
+        "source": "Search Engines & Web",
+    },
+    {
+        "id": "researcher_c",
+        "name": "Researcher C",
+        "role": "Knowledge Base",
+        "icon": "🗃️",
+        "source": "ChromaDB & Neo4j",
+    },
 ]
 
 STEP_ORDER = [s["id"] for s in PIPELINE_STEPS]
@@ -56,15 +73,19 @@ def _render_pipeline(current_step: str):
         if i < len(PIPELINE_STEPS) - 1:
             connector_state = "done" if state == "done" else "active" if state == "active" else ""
             pipeline_html += f'<div class="pipeline-connector {connector_state}"></div>'
-    pipeline_html += '</div>'
+    pipeline_html += "</div>"
     st.markdown(pipeline_html, unsafe_allow_html=True)
 
 
 def _render_parallel_agents():
-    st.markdown("""
-    <div class="agent-grid">""", unsafe_allow_html=True)
+    st.markdown(
+        """
+    <div class="agent-grid">""",
+        unsafe_allow_html=True,
+    )
     for agent in AGENTS:
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div class="agent-card active">
             <div class="agent-card-header">
                 <div class="agent-icon">{agent["icon"]}</div>
@@ -79,18 +100,23 @@ def _render_parallel_agents():
             <div style="margin-top: var(--space-2)">
                 <span class="agent-status running">⏳ RUNNING</span>
             </div>
-        </div>""", unsafe_allow_html=True)
+        </div>""",
+            unsafe_allow_html=True,
+        )
     st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render():
-    st.markdown("""
+    st.markdown(
+        """
     <div class="toolbar">
         <div class="toolbar-left">
             <span style="font-size: 1.5rem;">📊</span>
             <span class="toolbar-title">Job Status</span>
         </div>
-    </div>""", unsafe_allow_html=True)
+    </div>""",
+        unsafe_allow_html=True,
+    )
 
     job_id = st.text_input(
         "Job ID",
@@ -104,8 +130,8 @@ def render():
         refresh = st.button("🔄 Refresh", use_container_width=True, type="primary")
     with col_view:
         st.markdown(
-            f'<div style="padding: 7px 0; font-size: var(--text-sm); color: var(--color-muted-foreground);">'
-            f'Enter a job ID above and click Refresh to see live status.</div>',
+            '<div style="padding: 7px 0; font-size: var(--text-sm); color: var(--color-muted-foreground);">'
+            "Enter a job ID above and click Refresh to see live status.</div>",
             unsafe_allow_html=True,
         )
 
@@ -144,7 +170,8 @@ def render():
 
             if current_step not in ("completed", "failed", "cancelled") and estimated > 0:
                 progress = max(0, min(100, int((elapsed / estimated) * 100)))
-                st.markdown(f"""
+                st.markdown(
+                    f"""
                 <div class="eta-bar">
                     <span class="eta-label">⏱️ Estimated Time</span>
                     <div class="eta-progress">
@@ -153,7 +180,9 @@ def render():
                         </div>
                     </div>
                     <span class="eta-time">~{remaining}s remaining</span>
-                </div>""", unsafe_allow_html=True)
+                </div>""",
+                    unsafe_allow_html=True,
+                )
 
             if qs := status.get("quality_score"):
                 dims = qs.get("dimensions", {})

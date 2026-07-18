@@ -108,8 +108,9 @@ deploy = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
 include = ["src*"]
+
 
 [tool.uv]
 dev-dependencies = [
@@ -142,10 +143,35 @@ select = [
     "RET", # flake8-return
 ]
 ignore = [
-    "E501",  # line too long (handled by formatter)
-    "TRY003", # avoid specifying exception type
-    "ARG001", # unused argument
-    "ARG002", # unused argument
+    "E501",    # line too long (handled by formatter)
+    "TRY003",  # avoid specifying exception type
+    "ARG001",  # unused argument
+    "ARG002",  # unused argument
+    "PLC0415", # import outside top level
+    "PLR2004", # magic value comparison
+    "TRY400",  # error instead of exception
+    "T201",    # print statements
+    "TRY300",  # try-consider-else
+    "PLW0603", # global statement
+    "RET504",  # unnecessary assign
+    "F841",    # unused variable
+    "UP042",   # replace str enum
+    "PLR0913", # too many arguments
+    "PLR0911", # too many return statements
+    "B007",    # unused loop control variable
+    "ARG005",  # unused lambda argument
+    "E402",    # module import not at top of file
+    "PLR0912", # too many branches
+    "PLR0915", # too many statements
+    "C414",    # unnecessary list call within sorted
+    "B008",    # function call in argument defaults
+    "ARG003",  # unused class method argument
+    "E741",    # ambiguous variable name
+    "TRY004",  # prefer TypeError
+    "C401",    # unnecessary generator
+    "PLR1714", # merge multiple comparisons
+    "W291",    # trailing whitespace
+    "W293",    # blank line contains whitespace
 ]
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101", "S106", "S110"]

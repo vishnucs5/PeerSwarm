@@ -1,6 +1,7 @@
 """
 Pydantic models for memory and knowledge storage.
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -13,6 +14,7 @@ from pydantic import BaseModel, Field
 
 class TokenUsage(BaseModel):
     """Token usage tracking for a research run."""
+
     total_prompt_tokens: int = 0
     total_completion_tokens: int = 0
     total_tokens: int = 0
@@ -23,6 +25,7 @@ class TokenUsage(BaseModel):
 
 class MemoryType(str, Enum):
     """Type of memory entry."""
+
     RESEARCH_FINDING = "research_finding"
     SYNTHESIS = "synthesis"
     REPORT = "report"
@@ -34,6 +37,7 @@ class MemoryType(str, Enum):
 
 class EntityType(str, Enum):
     """Entity types in knowledge graph."""
+
     CONCEPT = "concept"
     PERSON = "person"
     ORGANIZATION = "organization"
@@ -47,6 +51,7 @@ class EntityType(str, Enum):
 
 class RelationType(str, Enum):
     """Relation types in knowledge graph."""
+
     RELATED_TO = "related_to"
     CITES = "cites"
     USES = "uses"
@@ -61,6 +66,7 @@ class RelationType(str, Enum):
 
 class MemoryEntry(BaseModel):
     """Unified memory entry for vector and graph storage."""
+
     id: str = Field(default_factory=lambda: str(uuid4())[:12])
     type: MemoryType
     content: str
@@ -86,6 +92,7 @@ class MemoryEntry(BaseModel):
 
 class SearchQuery(BaseModel):
     """Query for memory search."""
+
     query: str
     top_k: int = Field(default=10, ge=1, le=50)
     memory_types: list[MemoryType] | None = None
@@ -96,6 +103,7 @@ class SearchQuery(BaseModel):
 
 class SearchResult(BaseModel):
     """Result from memory search."""
+
     entry: MemoryEntry
     score: float = Field(ge=0, le=1)
     matched_text: str | None = None
@@ -103,6 +111,7 @@ class SearchResult(BaseModel):
 
 class SearchResponse(BaseModel):
     """Response from memory search."""
+
     results: list[SearchResult] = Field(default_factory=list)
     total: int = 0
     query: SearchQuery
@@ -111,6 +120,7 @@ class SearchResponse(BaseModel):
 
 class Entity(BaseModel):
     """Knowledge graph entity."""
+
     id: str = Field(default_factory=lambda: str(uuid4())[:12])
     name: str
     type: EntityType
@@ -125,6 +135,7 @@ class Entity(BaseModel):
 
 class Relation(BaseModel):
     """Knowledge graph relation."""
+
     id: str = Field(default_factory=lambda: str(uuid4())[:12])
     subject_id: str
     object_id: str
@@ -137,6 +148,7 @@ class Relation(BaseModel):
 
 class GraphQuery(BaseModel):
     """Query for knowledge graph traversal."""
+
     entity_id: str | None = None
     entity_name: str | None = None
     entity_type: EntityType | None = None
@@ -147,6 +159,7 @@ class GraphQuery(BaseModel):
 
 class GraphPath(BaseModel):
     """Path in knowledge graph."""
+
     entities: list[Entity] = Field(default_factory=list)
     relations: list[Relation] = Field(default_factory=list)
     score: float = Field(default=0.0, ge=0, le=1)
@@ -154,6 +167,7 @@ class GraphPath(BaseModel):
 
 class RunRecord(BaseModel):
     """Record of a research run for history."""
+
     id: str = Field(default_factory=lambda: str(uuid4())[:12])
     question: str
     status: str

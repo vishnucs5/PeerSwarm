@@ -1,6 +1,7 @@
 """
 Analyst agent - synthesizes research findings into cohesive analysis.
 """
+
 from __future__ import annotations
 
 import json
@@ -62,19 +63,23 @@ You think critically about source quality and the strength of evidence.""",
         synthesis = Synthesis(
             question=context.question,
             plan_id=plan.id if plan else "",
-            executive_summary=llm_content.get("executive_summary") or self._generate_summary(findings, clusters),
+            executive_summary=llm_content.get("executive_summary")
+            or self._generate_summary(findings, clusters),
             clusters=clusters,
             unified_narrative=self._build_narrative(clusters, findings),
             key_insights=llm_content.get("key_insights") or self._extract_insights(clusters),
             contradictions=llm_content.get("contradictions") or self._find_contradictions(clusters),
             evidence_gaps=llm_content.get("evidence_gaps") or self._identify_gaps(clusters),
             limitations=llm_content.get("limitations") or self._identify_limitations(findings),
-            future_work=llm_content.get("future_work") or self._suggest_future_work(clusters, findings),
+            future_work=llm_content.get("future_work")
+            or self._suggest_future_work(clusters, findings),
             all_findings=findings,
             citations=self._build_citations(findings),
         )
 
-        logger.info(f"Synthesis complete: {len(synthesis.clusters)} clusters, {len(synthesis.key_insights)} insights")
+        logger.info(
+            f"Synthesis complete: {len(synthesis.clusters)} clusters, {len(synthesis.key_insights)} insights"
+        )
         return synthesis
 
     def _llm_synthesize(self, findings: list[ResearchFinding], context: AgentContext) -> dict:
@@ -85,7 +90,10 @@ You think critically about source quality and the strength of evidence.""",
         )
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": f"Research question: {context.question}\n\nFindings:\n{findings_text}\n\nProduce synthesis JSON."},
+            {
+                "role": "user",
+                "content": f"Research question: {context.question}\n\nFindings:\n{findings_text}\n\nProduce synthesis JSON.",
+            },
         ]
         try:
             content, usage = self._llm_completion(messages, context)
@@ -111,8 +119,8 @@ You think critically about source quality and the strength of evidence.""",
 
         # Only split if we have only one generic tag group
         if len(theme_map) <= 2 and "general" in theme_map and len(theme_map) == 1:
-            theme_map["major_findings"] = findings[:len(findings)//2]
-            theme_map["supporting_evidence"] = findings[len(findings)//2:]
+            theme_map["major_findings"] = findings[: len(findings) // 2]
+            theme_map["supporting_evidence"] = findings[len(findings) // 2 :]
 
         clusters = []
         for theme, cluster_findings in theme_map.items():
@@ -122,13 +130,16 @@ You think critically about source quality and the strength of evidence.""",
                 summary=f"Cluster of {len(cluster_findings)} findings related to {theme}",
                 contradictions=[],
                 gaps=[],
-                confidence=sum(f.confidence for f in cluster_findings) / max(len(cluster_findings), 1),
+                confidence=sum(f.confidence for f in cluster_findings)
+                / max(len(cluster_findings), 1),
             )
             clusters.append(cluster)
 
         return clusters
 
-    def _generate_summary(self, findings: list[ResearchFinding], clusters: list[FindingCluster]) -> str:
+    def _generate_summary(
+        self, findings: list[ResearchFinding], clusters: list[FindingCluster]
+    ) -> str:
         """Generate executive summary."""
         if not clusters:
             return "No findings were generated. Unable to produce a summary."
@@ -142,14 +153,16 @@ You think critically about source quality and the strength of evidence.""",
 The research identified {sum(len(c.findings) for c in clusters)} key evidence points 
 organized around {len(clusters)} major themes."""
 
-    def _build_narrative(self, clusters: list[FindingCluster], findings: list[ResearchFinding]) -> str:
+    def _build_narrative(
+        self, clusters: list[FindingCluster], findings: list[ResearchFinding]
+    ) -> str:
         """Build a unified narrative from clusters."""
         if not clusters:
             return "Insufficient data to build a narrative."
 
         parts = []
         for i, cluster in enumerate(clusters):
-            parts.append(f"{i+1}. {cluster.theme}: {cluster.summary}")
+            parts.append(f"{i + 1}. {cluster.theme}: {cluster.summary}")
 
         return "\n".join(parts)
 
@@ -197,7 +210,9 @@ organized around {len(clusters)} major themes."""
 
         return limitations
 
-    def _suggest_future_work(self, clusters: list[FindingCluster], findings: list[ResearchFinding]) -> list[str]:
+    def _suggest_future_work(
+        self, clusters: list[FindingCluster], findings: list[ResearchFinding]
+    ) -> list[str]:
         """Suggest future research directions."""
         suggestions = []
         for cluster in clusters:

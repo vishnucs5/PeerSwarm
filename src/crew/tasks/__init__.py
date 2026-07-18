@@ -1,6 +1,7 @@
 """
 Tasks package exports.
 """
+
 from src.crew.tasks.analysis_task import AnalysisTask, create_analysis_task
 from src.crew.tasks.critique_task import CritiqueTask, create_critique_task
 from src.crew.tasks.planning_task import PlanningTask, create_planning_task

@@ -1,9 +1,9 @@
 """
 Tests for ResearchFlow step methods, helpers, and async wrapper.
 """
+
 from __future__ import annotations
 
-import asyncio
 import inspect
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -11,21 +11,18 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.flows.research_flow import ResearchFlow, run_research_async
-from src.flows.state import ResearchState, TokenUsage
+from src.flows.state import TokenUsage
 from src.models.quality import (
     QualityGateResult,
     QualityScore,
-    QualityDimension,
-    HardGateFailure,
 )
 from src.models.research import (
     EvidenceType,
-    FindingCluster,
     ResearchFinding,
     ResearchPlan,
+    ResearchStrategy,
     SubQuestion,
     SubQuestionPriority,
-    ResearchStrategy,
     Synthesis,
 )
 

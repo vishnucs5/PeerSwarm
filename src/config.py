@@ -2,19 +2,23 @@
 Configuration system for Multi-Agent Research Lab.
 Centralized settings management with Pydantic Settings.
 """
+
 from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, field_validator, AliasChoices
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class ModelConfig(BaseSettings):
     """Model routing configuration."""
-    planner: str = Field(default="gpt-4o", validation_alias=AliasChoices("MODEL_PI", "MODEL_PLANNER"))
+
+    planner: str = Field(
+        default="gpt-4o", validation_alias=AliasChoices("MODEL_PI", "MODEL_PLANNER")
+    )
     researcher_a: str = "gpt-4o-mini"
     researcher_b: str = "gpt-4o-mini"
     researcher_c: str = "gpt-4o-mini"
@@ -37,6 +41,7 @@ class ModelConfig(BaseSettings):
 
 class QualityConfig(BaseSettings):
     """Quality evaluation thresholds."""
+
     threshold: float = Field(default=8.0, ge=0, le=10)
     hard_gate_threshold: float = Field(default=6.0, ge=0, le=10)
     max_iterations: int = Field(default=3, ge=1, le=10)
@@ -53,6 +58,7 @@ class QualityConfig(BaseSettings):
 
 class StorageConfig(BaseSettings):
     """Storage backend configuration."""
+
     # ChromaDB
     chroma_host: str = "localhost"
     chroma_port: int = 8000
@@ -97,6 +103,7 @@ class StorageConfig(BaseSettings):
 
 class APIConfig(BaseSettings):
     """External API keys."""
+
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
     google_api_key: str | None = None
@@ -118,6 +125,7 @@ class APIConfig(BaseSettings):
 
 class ObservabilityConfig(BaseSettings):
     """Observability configuration."""
+
     langfuse_public_key: str | None = None
     langfuse_secret_key: str | None = None
     langfuse_host: str = "https://cloud.langfuse.com"
@@ -138,7 +146,9 @@ class ObservabilityConfig(BaseSettings):
 
 class ServerConfig(BaseSettings):
     """Server configuration."""
-    api_host: str = "0.0.0.0"
+
+    api_host: str = "0.0.0.0"  # nosec B104
+
     api_port: int = 8000
     api_workers: int = 4
     streamlit_port: int = 8501
@@ -168,12 +178,15 @@ class ServerConfig(BaseSettings):
 
 class SecurityConfig(BaseSettings):
     """Security configuration."""
+
     api_key_enabled: bool = Field(default=False, alias="SECURITY_API_KEY_ENABLED")
     api_keys: list[str] = Field(default_factory=list, alias="SECURITY_API_KEYS")
     secret_key: str | None = Field(default=None, alias="SECURITY_SECRET_KEY")
     encryption_key: str | None = Field(default=None, alias="SECURITY_ENCRYPTION_KEY")
     input_validation_enabled: bool = Field(default=True, alias="SECURITY_INPUT_VALIDATION_ENABLED")
-    max_request_body_size: int = Field(default=1048576, alias="SECURITY_MAX_REQUEST_BODY_SIZE")  # 1MB
+    max_request_body_size: int = Field(
+        default=1048576, alias="SECURITY_MAX_REQUEST_BODY_SIZE"
+    )  # 1MB
     allowed_domains: list[str] = Field(default_factory=list, alias="SECURITY_ALLOWED_DOMAINS")
 
     model_config = SettingsConfigDict(
@@ -188,6 +201,7 @@ class SecurityConfig(BaseSettings):
 
 class FeatureFlags(BaseSettings):
     """Feature flags."""
+
     enable_ollama: bool = False
     enable_langfuse: bool = True
     enable_phoenix: bool = False
@@ -207,6 +221,7 @@ class FeatureFlags(BaseSettings):
 
 class Settings(BaseSettings):
     """Main application settings."""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -237,10 +252,12 @@ class Settings(BaseSettings):
     kg_relation_extraction_model: str = "gpt-4o-mini"
 
     # CORS
-    cors_origins: list[str] = Field(default_factory=lambda: [
-        "http://localhost:3000",
-        "http://localhost:8501",
-    ])
+    cors_origins: list[str] = Field(
+        default_factory=lambda: [
+            "http://localhost:3000",
+            "http://localhost:8501",
+        ]
+    )
 
     # Celery
     celery_broker_url: str = "redis://localhost:6379/0"

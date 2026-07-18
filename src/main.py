@@ -1,6 +1,7 @@
 """
 Multi-Agent Research Lab — CLI entry point.
 """
+
 from __future__ import annotations
 
 import json
@@ -24,8 +25,12 @@ logger = get_logger(__name__)
 def run(
     question: str = typer.Argument(..., help="Research question to investigate"),
     output: Path | None = typer.Option(None, "--output", "-o", help="Output file path for report"),
-    max_iterations: int = typer.Option(3, "--max-iterations", "-i", help="Maximum quality loop iterations"),
-    quality_threshold: float = typer.Option(8.0, "--threshold", "-t", help="Quality threshold (0-10)"),
+    max_iterations: int = typer.Option(
+        3, "--max-iterations", "-i", help="Maximum quality loop iterations"
+    ),
+    quality_threshold: float = typer.Option(
+        8.0, "--threshold", "-t", help="Quality threshold (0-10)"
+    ),
     json_output: bool = typer.Option(False, "--json", "-j", help="Output results as JSON"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ):
@@ -46,7 +51,7 @@ def run(
     )
 
     score = state.quality_score.overall if state.quality_score else 0
-    findings_count = len(state.get_all_findings()) if hasattr(state, 'get_all_findings') else 0
+    findings_count = len(state.get_all_findings()) if hasattr(state, "get_all_findings") else 0
 
     if json_output:
         result = {
@@ -60,6 +65,7 @@ def run(
         print(json.dumps(result, indent=2))
     else:
         from src.evaluation.metrics import format_score_summary
+
         if state.quality_score:
             print("\n" + "=" * 50)
             print(format_score_summary(state.quality_score))
@@ -82,6 +88,7 @@ def plan(
     configure_logging(level="WARNING")
 
     from src.crew.tasks import create_planning_task
+
     planning = create_planning_task()
     plan = planning.execute(question)
 
@@ -96,7 +103,7 @@ def plan(
             print(f"     Terms: {', '.join(sq.search_terms)}")
             print()
         print(f"Risk Assessment: {json.dumps(plan.risk_assessment, indent=2)}")
-        print(f"Success Criteria: {[f'{i+1}. {c}' for i, c in enumerate(plan.success_criteria)]}")
+        print(f"Success Criteria: {[f'{i + 1}. {c}' for i, c in enumerate(plan.success_criteria)]}")
 
 
 @app.command()
@@ -107,11 +114,13 @@ def evaluate(
     configure_logging(level="INFO")
 
     from src.evaluation import get_evaluator
+
     evaluator = get_evaluator()
     score = evaluator.evaluate_report(report_path)
 
     if score:
         from src.evaluation.metrics import format_score_summary
+
         print("\n" + "=" * 50)
         print(format_score_summary(score))
         print("=" * 50 + "\n")
@@ -127,6 +136,7 @@ def list_reports(
     configure_logging(level="WARNING")
 
     from src.memory import get_run_history
+
     history = get_run_history()
     runs = history.list_runs(limit=limit)
 
@@ -141,7 +151,9 @@ def list_reports(
             overall = run.quality_score.get("overall", "?")
             score = f" [Quality: {overall}/10]"
         print(f"  {i}. [{run.status}] {run.question[:70]}...{score}")
-        print(f"     ID: {run.id}  |  Iterations: {run.iterations}  |  {run.created_at.strftime('%Y-%m-%d %H:%M') if run.created_at else 'N/A'}")
+        print(
+            f"     ID: {run.id}  |  Iterations: {run.iterations}  |  {run.created_at.strftime('%Y-%m-%d %H:%M') if run.created_at else 'N/A'}"
+        )
         print()
 
 
@@ -151,6 +163,7 @@ def stats():
     configure_logging(level="WARNING")
 
     from src.memory import get_run_history
+
     history = get_run_history()
     stats = history.get_stats()
 

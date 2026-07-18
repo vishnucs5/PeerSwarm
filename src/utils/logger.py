@@ -1,6 +1,7 @@
 """
 Structured logging with structlog.
 """
+
 from __future__ import annotations
 
 import logging
@@ -25,6 +26,7 @@ def add_trace_context(logger: Any, method_name: str, event_dict: EventDict) -> E
     """Add trace context if available."""
     try:
         from langfuse import get_current_trace_id
+
         trace_id = get_current_trace_id()
         if trace_id:
             event_dict["trace_id"] = trace_id

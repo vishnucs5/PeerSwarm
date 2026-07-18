@@ -1,6 +1,7 @@
 """
 Web researcher agent - searches for industry reports, news, and web content.
 """
+
 from __future__ import annotations
 
 from src.config import get_model_for_agent
@@ -41,6 +42,7 @@ and extract actionable insights from diverse web sources.""",
         logger.info(f"Web researching: {sub_question[:60]}...")
 
         from src.tools.web_search import get_web_search_tool
+
         web = get_web_search_tool()
 
         findings = []

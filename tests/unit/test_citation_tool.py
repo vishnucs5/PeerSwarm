@@ -1,6 +1,7 @@
 """
 Tests for citation generation tool.
 """
+
 from __future__ import annotations
 
 from src.tools.citation_tool import CitationTool
@@ -172,6 +173,7 @@ class TestCitationTool:
 
 def test_get_citation_tool():
     from src.tools.citation_tool import get_citation_tool
+
     tool = get_citation_tool()
     assert tool is not None
     assert isinstance(tool, CitationTool)

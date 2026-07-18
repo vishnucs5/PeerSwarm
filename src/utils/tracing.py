@@ -1,6 +1,7 @@
 """
 Langfuse tracing integration.
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -11,6 +12,7 @@ from typing import Any
 try:
     from langfuse import Langfuse
     from langfuse.decorators import langfuse_context, observe
+
     LANGFUSE_AVAILABLE = True
 except ImportError:
     LANGFUSE_AVAILABLE = False
@@ -36,7 +38,10 @@ class Tracing:
         """Get or create Langfuse client."""
         if self._client is None and LANGFUSE_AVAILABLE:
             settings = get_settings()
-            if settings.observability.langfuse_public_key and settings.observability.langfuse_secret_key:
+            if (
+                settings.observability.langfuse_public_key
+                and settings.observability.langfuse_secret_key
+            ):
                 try:
                     self._client = Langfuse(
                         public_key=settings.observability.langfuse_public_key,
@@ -179,6 +184,7 @@ def get_tracing() -> Tracing:
 # Decorators for easy tracing
 def trace_agent(agent_name: str):
     """Decorator to trace agent execution."""
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -202,12 +208,15 @@ def trace_agent(agent_name: str):
                 raise
             finally:
                 tracing.flush()
+
         return wrapper
+
     return decorator
 
 
 def trace_tool(tool_name: str):
     """Decorator to trace tool execution."""
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -225,12 +234,15 @@ def trace_tool(tool_name: str):
                 raise
             finally:
                 span.end()
+
         return wrapper
+
     return decorator
 
 
 def trace_operation(operation_name: str):
     """Decorator to trace any operation."""
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -247,7 +259,9 @@ def trace_operation(operation_name: str):
                 raise
             finally:
                 span.end()
+
         return wrapper
+
     return decorator
 
 
@@ -279,12 +293,36 @@ def record_quality_score(
     if not tracing.enabled:
         return
 
-    tracing.score(trace_id=trace_id, name="quality.overall", value=score.overall, iteration=iteration)
-    tracing.score(trace_id=trace_id, name="quality.factual_accuracy", value=score.factual_accuracy, iteration=iteration)
-    tracing.score(trace_id=trace_id, name="quality.source_quality", value=score.source_quality, iteration=iteration)
-    tracing.score(trace_id=trace_id, name="quality.logical_coherence", value=score.logical_coherence, iteration=iteration)
-    tracing.score(trace_id=trace_id, name="quality.completeness", value=score.completeness, iteration=iteration)
-    tracing.score(trace_id=trace_id, name="quality.clarity", value=score.clarity, iteration=iteration)
+    tracing.score(
+        trace_id=trace_id, name="quality.overall", value=score.overall, iteration=iteration
+    )
+    tracing.score(
+        trace_id=trace_id,
+        name="quality.factual_accuracy",
+        value=score.factual_accuracy,
+        iteration=iteration,
+    )
+    tracing.score(
+        trace_id=trace_id,
+        name="quality.source_quality",
+        value=score.source_quality,
+        iteration=iteration,
+    )
+    tracing.score(
+        trace_id=trace_id,
+        name="quality.logical_coherence",
+        value=score.logical_coherence,
+        iteration=iteration,
+    )
+    tracing.score(
+        trace_id=trace_id,
+        name="quality.completeness",
+        value=score.completeness,
+        iteration=iteration,
+    )
+    tracing.score(
+        trace_id=trace_id, name="quality.clarity", value=score.clarity, iteration=iteration
+    )
 
     if score.hard_gate_failures:
         for failure in score.hard_gate_failures:
@@ -304,6 +342,8 @@ def record_token_usage(trace_id: str, usage: dict[str, int], model: str):
         return
 
     tracing.score(trace_id=trace_id, name="tokens.prompt", value=usage.get("prompt_tokens", 0))
-    tracing.score(trace_id=trace_id, name="tokens.completion", value=usage.get("completion_tokens", 0))
+    tracing.score(
+        trace_id=trace_id, name="tokens.completion", value=usage.get("completion_tokens", 0)
+    )
     tracing.score(trace_id=trace_id, name="tokens.total", value=usage.get("total_tokens", 0))
     tracing.event(trace_id=trace_id, name="token_usage", model=model, **usage)

@@ -1,14 +1,13 @@
 """
 Tests for the evaluation module (evaluator).
 """
+
 from __future__ import annotations
 
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
-from src.evaluation.evaluator import ResearchEvaluator, BatchEvaluator
+from src.evaluation.evaluator import BatchEvaluator, ResearchEvaluator
 
 
 class TestResearchEvaluator:
@@ -71,13 +70,13 @@ class TestBatchEvaluator:
 
     def test_compute_summary_empty(self):
         with patch("src.evaluation.evaluator.get_settings"):
-            be = BatchEvaluator(output_dir=Path("."))
+            be = BatchEvaluator(output_dir=Path())
             result = be._compute_summary([])
             assert result["avg_quality"] == 0
 
     def test_compute_summary_with_data(self):
         with patch("src.evaluation.evaluator.get_settings"):
-            be = BatchEvaluator(output_dir=Path("."))
+            be = BatchEvaluator(output_dir=Path())
             results = [
                 {"quality_score": {"overall": 8.0}, "iterations": 2, "total_findings": 5},
                 {"quality_score": {"overall": 9.0}, "iterations": 3, "total_findings": 7},
@@ -91,7 +90,7 @@ class TestBatchEvaluator:
 
     def test_compute_summary_with_errors_skipped(self):
         with patch("src.evaluation.evaluator.get_settings"):
-            be = BatchEvaluator(output_dir=Path("."))
+            be = BatchEvaluator(output_dir=Path())
             results = [
                 {"quality_score": {"overall": 8.0}, "iterations": 2, "total_findings": 5},
                 {"error": "failed", "question": "q2"},
@@ -102,7 +101,7 @@ class TestBatchEvaluator:
 
     def test_compute_summary_single_item(self):
         with patch("src.evaluation.evaluator.get_settings"):
-            be = BatchEvaluator(output_dir=Path("."))
+            be = BatchEvaluator(output_dir=Path())
             results = [
                 {"quality_score": {"overall": 7.5}, "iterations": 1, "total_findings": 3},
             ]
@@ -128,6 +127,7 @@ class TestBatchEvaluator:
                 result_path = be.run_evaluation_suite(["q1", "q2"], label="test_suite")
                 assert result_path.exists()
                 import json
+
                 report = json.loads(result_path.read_text())
                 assert report["label"] == "test_suite"
                 assert report["total"] == 2
@@ -138,13 +138,19 @@ class TestBatchEvaluator:
             patch("src.evaluation.evaluator.BatchEvaluator.evaluate_question") as mock_eq,
         ):
             mock_eq.side_effect = [
-                {"question": "q1", "quality_score": {"overall": 8.0}, "iterations": 2, "total_findings": 3},
+                {
+                    "question": "q1",
+                    "quality_score": {"overall": 8.0},
+                    "iterations": 2,
+                    "total_findings": 3,
+                },
                 Exception("flow failed"),
             ]
             with patch("src.evaluation.evaluator.get_settings"):
                 be = BatchEvaluator(output_dir=tmp_path)
                 result_path = be.run_evaluation_suite(["q1", "q2"])
                 import json
+
                 report = json.loads(result_path.read_text())
                 assert report["total"] == 2
                 assert report["completed"] == 1
@@ -153,6 +159,7 @@ class TestBatchEvaluator:
 
 def test_get_evaluator():
     from src.evaluation.evaluator import get_evaluator
+
     with patch("src.evaluation.evaluator.ResearchEvaluator") as mock:
         mock.return_value = MagicMock()
         ev = get_evaluator()
@@ -161,6 +168,7 @@ def test_get_evaluator():
 
 def test_get_batch_evaluator():
     from src.evaluation.evaluator import get_batch_evaluator
+
     with patch("src.evaluation.evaluator.BatchEvaluator") as mock:
         mock.return_value = MagicMock()
         be = get_batch_evaluator()

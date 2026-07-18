@@ -1,6 +1,7 @@
 """
 Tests for flow state model and routing logic.
 """
+
 from __future__ import annotations
 
 from src.flows.state import ResearchState
@@ -23,13 +24,17 @@ class TestResearchState:
 
     def test_get_all_findings_with_data(self):
         state = ResearchState(question="Test?")
-        from src.models.research import ResearchFinding, EvidenceType
+        from src.models.research import EvidenceType, ResearchFinding
+
         state.findings = {
             "researcher_a": [
                 ResearchFinding(
-                    sub_question_id="sq_1", researcher="researcher_a",
-                    claim="Claim 1", evidence="Ev 1",
-                    evidence_type=EvidenceType.ACADEMIC_PAPER, source="Src 1",
+                    sub_question_id="sq_1",
+                    researcher="researcher_a",
+                    claim="Claim 1",
+                    evidence="Ev 1",
+                    evidence_type=EvidenceType.ACADEMIC_PAPER,
+                    source="Src 1",
                 ),
             ],
         }

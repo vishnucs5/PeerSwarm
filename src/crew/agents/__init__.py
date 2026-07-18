@@ -1,6 +1,7 @@
 """
 Agents package exports.
 """
+
 from src.crew.agents.analyst import AnalystAgent, create_analyst_agent
 from src.crew.agents.base import AgentContext, BaseAgent, CrewAIAgentWrapper
 from src.crew.agents.critic import CriticAgent, create_critic_agent

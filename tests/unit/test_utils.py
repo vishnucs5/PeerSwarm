@@ -1,6 +1,7 @@
 """
 Tests for utils: logger, tracing, exporters.
 """
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock
@@ -27,7 +28,9 @@ class TestLogger:
         logger.error("Test error")
 
     def test_json_log_output(self):
-        import io, json
+        import io
+        import json
+
         buf = io.StringIO()
         configure_logging(level="DEBUG", format="json", stream=buf)
         logger = get_logger("json_test")
@@ -41,10 +44,13 @@ class TestLogger:
         assert parsed["extra_field"] == "hello"
 
     def test_json_log_context_binding(self):
-        import io, json
+        import io
+        import json
+
         buf = io.StringIO()
         configure_logging(level="DEBUG", format="json", stream=buf)
         from src.utils.logger import LogContext
+
         with LogContext(request_id="abc-123"):
             logger = get_logger("ctx_test")
             logger.info("context test")
@@ -55,19 +61,22 @@ class TestLogger:
 
 class TestTracing:
     def test_tracing(self):
-        from src.utils.tracing import Tracing, get_tracing
+        from src.utils.tracing import Tracing
+
         tm = Tracing()
         assert tm is not None
         assert tm.enabled is False
 
     def test_get_tracing(self):
         from src.utils.tracing import get_tracing
+
         tm = get_tracing()
         assert tm is not None
         assert tm.enabled is False
 
     def test_null_trace(self):
         from src.utils.tracing import NullTrace
+
         t = NullTrace()
         assert t.id == "disabled"
         with t as nt:
@@ -79,62 +88,75 @@ class TestTracing:
 
     def test_null_generation(self):
         from src.utils.tracing import NullGeneration
+
         g = NullGeneration()
         with g as ng:
             ng.end()
 
     def test_null_span(self):
         from src.utils.tracing import NullSpan
+
         s = NullSpan()
         with s as ns:
             ns.end()
 
     def test_trace_disabled_returns_null(self):
-        from src.utils.tracing import Tracing, NullTrace
+        from src.utils.tracing import NullTrace, Tracing
+
         tm = Tracing()
         assert isinstance(tm.trace("test"), NullTrace)
 
     def test_generation_disabled_returns_null(self):
-        from src.utils.tracing import Tracing, NullTrace, NullGeneration
+        from src.utils.tracing import NullGeneration, Tracing
+
         tm = Tracing()
         g = tm.generation(trace_id="t1", name="test", model="gpt-4", input="hello")
         assert isinstance(g, NullGeneration)
 
     def test_span_disabled_returns_null(self):
-        from src.utils.tracing import Tracing, NullTrace, NullSpan
+        from src.utils.tracing import NullSpan, Tracing
+
         tm = Tracing()
         s = tm.span(trace_id="t1", name="test")
         assert isinstance(s, NullSpan)
 
     def test_trace_agent_decorator(self):
         from src.utils.tracing import trace_agent
+
         @trace_agent("test_agent")
         def my_func(a, b):
             return a + b
+
         result = my_func(1, 2)
         assert result == 3
 
     def test_trace_tool_decorator(self):
         from src.utils.tracing import trace_tool
+
         @trace_tool("test_tool")
         def my_tool(x):
             return x * 2
+
         assert my_tool(5) == 10
 
     def test_trace_operation_decorator(self):
         from src.utils.tracing import trace_operation
+
         @trace_operation("test_op")
         def my_op(x):
             return x + 1
+
         assert my_op(3) == 4
 
     def test_trace_quality_loop(self):
-        from src.utils.tracing import trace_quality_loop, NullSpan
+        from src.utils.tracing import NullSpan, trace_quality_loop
+
         with trace_quality_loop(iteration=1) as span:
             assert isinstance(span, NullSpan)
 
     def test_record_quality_score_disabled(self):
         from src.utils.tracing import record_quality_score
+
         score = MagicMock()
         score.overall = 8.0
         score.hard_gate_failures = []
@@ -142,18 +164,21 @@ class TestTracing:
 
     def test_record_token_usage_disabled(self):
         from src.utils.tracing import record_token_usage
+
         record_token_usage("trace_1", {"prompt_tokens": 100, "completion_tokens": 50}, "gpt-4o")
 
     def test_flush(self):
         from src.utils.tracing import Tracing
+
         tm = Tracing()
         tm.flush()
 
 
 class TestExporters:
     def test_export_markdown(self, tmp_path):
-        from src.utils.exporters import export_markdown
         from src.models.research import FinalReport, ReportSection
+        from src.utils.exporters import export_markdown
+
         report = FinalReport(
             synthesis_id="syn_001",
             title="Test Report",
@@ -171,8 +196,9 @@ class TestExporters:
         assert "Test Report" in content
 
     def test_export_json(self, tmp_path):
-        from src.utils.exporters import export_json
         from src.models.research import FinalReport
+        from src.utils.exporters import export_json
+
         report = FinalReport(
             synthesis_id="syn_001",
             title="JSON Test",
@@ -182,12 +208,14 @@ class TestExporters:
         result = export_json(report, output_path=output)
         assert result.exists()
         import json
+
         data = json.loads(result.read_text())
         assert data["title"] == "JSON Test"
 
     def test_export_markdown_no_sections(self, tmp_path):
-        from src.utils.exporters import export_markdown
         from src.models.research import FinalReport
+        from src.utils.exporters import export_markdown
+
         report = FinalReport(
             synthesis_id="syn_002",
             title="Minimal Report",
@@ -200,8 +228,9 @@ class TestExporters:
         assert "Minimal Report" in content
 
     def test_export_markdown_default_path(self):
-        from src.utils.exporters import export_markdown
         from src.models.research import FinalReport
+        from src.utils.exporters import export_markdown
+
         report = FinalReport(
             synthesis_id="syn_004",
             title="Default Path",
@@ -215,8 +244,9 @@ class TestExporters:
         result.unlink() if result.exists() else None
 
     def test_export_json_default_path(self):
-        from src.utils.exporters import export_json
         from src.models.research import FinalReport
+        from src.utils.exporters import export_json
+
         report = FinalReport(
             synthesis_id="syn_005",
             title="JSON Default",
@@ -229,8 +259,9 @@ class TestExporters:
         result.unlink() if result.exists() else None
 
     def test_generate_html(self):
-        from src.utils.exporters import generate_html
         from src.models.research import FinalReport, ReportSection
+        from src.utils.exporters import generate_html
+
         report = FinalReport(
             synthesis_id="syn_006",
             title="HTML Test",
@@ -257,8 +288,9 @@ class TestExporters:
         assert "Ref A" in html
 
     def test_generate_html_minimal(self):
-        from src.utils.exporters import generate_html
         from src.models.research import FinalReport
+        from src.utils.exporters import generate_html
+
         report = FinalReport(
             synthesis_id="syn_007",
             title="Minimal",
@@ -269,8 +301,9 @@ class TestExporters:
         assert "Minimal summary" in html
 
     def test_export_pdf_missing_weasyprint(self):
-        from src.utils.exporters import export_pdf, HAS_WEASYPRINT
         from src.models.research import FinalReport
+        from src.utils.exporters import HAS_WEASYPRINT, export_pdf
+
         report = FinalReport(
             synthesis_id="syn_008",
             title="PDF Test",
@@ -278,11 +311,13 @@ class TestExporters:
         )
         if not HAS_WEASYPRINT:
             import pytest
+
             with pytest.raises(ImportError, match="WeasyPrint is not installed"):
                 export_pdf(report)
         # If weasyprint is installed, just verify it creates a file
         else:
             import tempfile
+
             output = tempfile.NamedTemporaryFile(suffix=".pdf", delete=False)
             result = export_pdf(report, output_path=output.name)
             assert result.exists()

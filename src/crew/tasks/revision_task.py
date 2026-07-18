@@ -1,6 +1,7 @@
 """
 Revision task - applies targeted revisions based on critic feedback.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -32,6 +33,7 @@ class RevisionTask:
     def researcher_a(self) -> AcademicResearcherAgent:
         if self._researcher_a is None:
             from src.crew.agents import create_academic_researcher
+
             self._researcher_a = create_academic_researcher()
         return self._researcher_a
 
@@ -39,6 +41,7 @@ class RevisionTask:
     def researcher_b(self) -> WebResearcherAgent:
         if self._researcher_b is None:
             from src.crew.agents import create_web_researcher
+
             self._researcher_b = create_web_researcher()
         return self._researcher_b
 
@@ -46,6 +49,7 @@ class RevisionTask:
     def researcher_c(self) -> KBResearcherAgent:
         if self._researcher_c is None:
             from src.crew.agents import create_kb_researcher
+
             self._researcher_c = create_kb_researcher()
         return self._researcher_c
 
@@ -53,14 +57,19 @@ class RevisionTask:
     def analyst(self) -> AnalystAgent:
         if self._analyst is None:
             from src.crew.agents import create_analyst_agent
+
             self._analyst = create_analyst_agent()
         return self._analyst
 
-    def execute(self, target: TargetAgent, quality_result: QualityGateResult,
-                findings: dict[str, list[ResearchFinding]],
-                current_synthesis: Synthesis | None = None,
-                plan: ResearchPlan | None = None,
-                context: AgentContext | None = None) -> dict[str, Any]:
+    def execute(
+        self,
+        target: TargetAgent,
+        quality_result: QualityGateResult,
+        findings: dict[str, list[ResearchFinding]],
+        current_synthesis: Synthesis | None = None,
+        plan: ResearchPlan | None = None,
+        context: AgentContext | None = None,
+    ) -> dict[str, Any]:
         """Execute targeted revision based on quality gate result."""
         ctx = context or AgentContext(question="", iteration=quality_result.score.iteration)
         score = quality_result.score
@@ -71,23 +80,36 @@ class RevisionTask:
         logger.info(f"Revision targeting {target}: {revision_reason}")
 
         if target == "researcher_a":
-            additional = self.researcher_a.execute(ctx, sub_question=revision_reason,
-                                                    sub_question_id="revision",
-                                                    search_terms=score.suggestions[:2])
-            result["findings"]["researcher_a"] = result["findings"].get("researcher_a", []) + additional
+            additional = self.researcher_a.execute(
+                ctx,
+                sub_question=revision_reason,
+                sub_question_id="revision",
+                search_terms=score.suggestions[:2],
+            )
+            result["findings"]["researcher_a"] = (
+                result["findings"].get("researcher_a", []) + additional
+            )
             result["revised"] = True
 
         elif target == "researcher_b":
-            additional = self.researcher_b.execute(ctx, sub_question=revision_reason,
-                                                    sub_question_id="revision",
-                                                    search_terms=score.suggestions[:2])
-            result["findings"]["researcher_b"] = result["findings"].get("researcher_b", []) + additional
+            additional = self.researcher_b.execute(
+                ctx,
+                sub_question=revision_reason,
+                sub_question_id="revision",
+                search_terms=score.suggestions[:2],
+            )
+            result["findings"]["researcher_b"] = (
+                result["findings"].get("researcher_b", []) + additional
+            )
             result["revised"] = True
 
         elif target == "researcher_c":
-            additional = self.researcher_c.execute(ctx, sub_question=revision_reason,
-                                                    sub_question_id="revision")
-            result["findings"]["researcher_c"] = result["findings"].get("researcher_c", []) + additional
+            additional = self.researcher_c.execute(
+                ctx, sub_question=revision_reason, sub_question_id="revision"
+            )
+            result["findings"]["researcher_c"] = (
+                result["findings"].get("researcher_c", []) + additional
+            )
             result["revised"] = True
 
         elif target == "analyst" and current_synthesis:
@@ -132,6 +154,7 @@ class RevisionTask:
     def to_crewai_task(self, crewai_agent) -> Any:
         try:
             from crewai import Task as CrewTask
+
             return CrewTask(
                 description="""Apply targeted revisions based on quality critique feedback.
 

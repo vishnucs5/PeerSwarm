@@ -1,6 +1,7 @@
 """
 Research domain models: plans, findings, synthesis.
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -29,15 +30,16 @@ class SubQuestionPriority(str, Enum):
 
 
 class ResearchStrategy(str, Enum):
-    ACADEMIC_DEEP = "academic_deep"           # Focus on papers, technical depth
-    INDUSTRY_SURVEY = "industry_survey"       # Focus on reports, market data
-    COMPARATIVE = "comparative"                # Compare approaches, methods
-    HISTORICAL = "historical"                  # Trace evolution over time
-    GAP_ANALYSIS = "gap_analysis"              # Find what's missing
+    ACADEMIC_DEEP = "academic_deep"  # Focus on papers, technical depth
+    INDUSTRY_SURVEY = "industry_survey"  # Focus on reports, market data
+    COMPARATIVE = "comparative"  # Compare approaches, methods
+    HISTORICAL = "historical"  # Trace evolution over time
+    GAP_ANALYSIS = "gap_analysis"  # Find what's missing
 
 
 class SubQuestion(BaseModel):
     """A single sub-question in the research plan."""
+
     id: str = Field(default_factory=lambda: f"sq_{str(uuid4())[:8]}")
     question: str
     rationale: str
@@ -52,6 +54,7 @@ class SubQuestion(BaseModel):
 
 class ResearchPlan(BaseModel):
     """Complete research plan from PI agent."""
+
     id: str = Field(default_factory=lambda: f"plan_{str(uuid4())[:8]}")
     original_question: str
     sub_questions: list[SubQuestion] = Field(default_factory=list)
@@ -85,6 +88,7 @@ class EvidenceType(str, Enum):
 
 class ResearchFinding(BaseModel):
     """A single research finding from a researcher agent."""
+
     id: str = Field(default_factory=lambda: f"find_{str(uuid4())[:8]}")
     sub_question_id: str
     researcher: Literal["researcher_a", "researcher_b", "researcher_c"]
@@ -102,6 +106,7 @@ class ResearchFinding(BaseModel):
 
 class FindingCluster(BaseModel):
     """Cluster of related findings identified by Analyst."""
+
     id: str = Field(default_factory=lambda: f"cluster_{str(uuid4())[:8]}")
     theme: str
     findings: list[ResearchFinding] = Field(default_factory=list)
@@ -113,6 +118,7 @@ class FindingCluster(BaseModel):
 
 class Synthesis(BaseModel):
     """Synthesized analysis from Analyst agent."""
+
     id: str = Field(default_factory=lambda: f"syn_{str(uuid4())[:8]}")
     question: str
     plan_id: str
@@ -132,6 +138,7 @@ class Synthesis(BaseModel):
 
 class ReportSection(BaseModel):
     """Section in the final report."""
+
     id: str = Field(default_factory=lambda: f"sec_{str(uuid4())[:8]}")
     title: str
     content: str
@@ -141,6 +148,7 @@ class ReportSection(BaseModel):
 
 class FinalReport(BaseModel):
     """Final research report from Writer agent."""
+
     id: str = Field(default_factory=lambda: f"rpt_{str(uuid4())[:8]}")
     synthesis_id: str
     title: str

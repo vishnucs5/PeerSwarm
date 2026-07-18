@@ -1,6 +1,7 @@
 """
 Base agent class for all research agents.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -16,6 +17,7 @@ logger = get_logger(__name__)
 
 class AgentContext(BaseModel):
     """Context passed to agents during execution."""
+
     question: str
     trace_id: str = ""
     run_id: str = ""
@@ -88,14 +90,16 @@ class BaseAgent(ABC):
             usage_dict has keys: prompt_tokens, completion_tokens.
         """
         import litellm
+
         temperature = context.temperature if context else self.temperature
         max_tokens = context.max_tokens if context else self.max_tokens
-        kwargs = dict(
-            model=self.model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        )
+        kwargs = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+
         if response_format:
             kwargs["response_format"] = response_format
 
@@ -103,9 +107,9 @@ class BaseAgent(ABC):
         content = response.choices[0].message.content
         usage = {
             "prompt_tokens": getattr(response.usage, "prompt_tokens", 0)
-                          or getattr(response.usage, "input_tokens", 0),
+            or getattr(response.usage, "input_tokens", 0),
             "completion_tokens": getattr(response.usage, "completion_tokens", 0)
-                             or getattr(response.usage, "output_tokens", 0),
+            or getattr(response.usage, "output_tokens", 0),
         }
         self._last_usage = usage
         return content or "", usage
@@ -129,13 +133,14 @@ class CrewAIAgentWrapper:
         """Convert to CrewAI Agent."""
         try:
             from crewai import Agent as CrewAgent
+
             return CrewAgent(
                 role=self.role,
                 goal=self.goal,
                 backstory=self.backstory,
-                tools=self.agent.tools[:4] if hasattr(self.agent, 'tools') else [],
+                tools=self.agent.tools[:4] if hasattr(self.agent, "tools") else [],
                 allow_delegation=allow_delegation,
-                verbose=self.agent.verbose if hasattr(self.agent, 'verbose') else False,
+                verbose=self.agent.verbose if hasattr(self.agent, "verbose") else False,
                 max_iter=max_iter,
             )
         except Exception as e:

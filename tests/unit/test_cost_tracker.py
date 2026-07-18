@@ -1,10 +1,14 @@
 """
 Tests for cost tracking utilities.
 """
+
 from __future__ import annotations
 
 from src.utils.cost_tracker import (
-    get_model_cost, estimate_cost_from_response, format_cost, summarize_costs,
+    estimate_cost_from_response,
+    format_cost,
+    get_model_cost,
+    summarize_costs,
 )
 
 

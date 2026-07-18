@@ -1,6 +1,7 @@
 """
 Neo4j knowledge graph for entities and relationships.
 """
+
 from __future__ import annotations
 
 from contextlib import contextmanager
@@ -126,7 +127,9 @@ class KnowledgeGraph:
                     type=entity.type,
                     description=entity.description,
                     source_run_id=entity.source_run_ids[0] if entity.source_run_ids else "",
-                    confidence=entity.properties.get("confidence", 1.0) if entity.properties else 1.0,
+                    confidence=entity.properties.get("confidence", 1.0)
+                    if entity.properties
+                    else 1.0,
                     updated_at=datetime.now(UTC).isoformat(),
                 )
             return True
@@ -158,7 +161,9 @@ class KnowledgeGraph:
                         name=node["name"],
                         type=node["type"],
                         description=node.get("description", ""),
-                        source_run_ids=[node.get("source_run_id", "")] if node.get("source_run_id") else [],
+                        source_run_ids=[node.get("source_run_id", "")]
+                        if node.get("source_run_id")
+                        else [],
                         properties={"confidence": node.get("confidence", 1.0)},
                     )
         except Exception as e:
@@ -190,14 +195,18 @@ class KnowledgeGraph:
                 entities = []
                 for record in result:
                     node = record["e"]
-                    entities.append(Entity(
-                        id=node["id"],
-                        name=node["name"],
-                        type=node["type"],
-                        description=node.get("description", ""),
-                        source_run_ids=[node.get("source_run_id", "")] if node.get("source_run_id") else [],
-                        properties={"confidence": node.get("confidence", 1.0)},
-                    ))
+                    entities.append(
+                        Entity(
+                            id=node["id"],
+                            name=node["name"],
+                            type=node["type"],
+                            description=node.get("description", ""),
+                            source_run_ids=[node.get("source_run_id", "")]
+                            if node.get("source_run_id")
+                            else [],
+                            properties={"confidence": node.get("confidence", 1.0)},
+                        )
+                    )
                 return entities
         except Exception as e:
             logger.error(f"Error searching entities: {e}")
@@ -214,14 +223,18 @@ class KnowledgeGraph:
                 entities = []
                 for record in result:
                     node = record["e"]
-                    entities.append(Entity(
-                        id=node["id"],
-                        name=node["name"],
-                        type=node["type"],
-                        description=node.get("description", ""),
-                        source_run_ids=[node.get("source_run_id", "")] if node.get("source_run_id") else [],
-                        properties={"confidence": node.get("confidence", 1.0)},
-                    ))
+                    entities.append(
+                        Entity(
+                            id=node["id"],
+                            name=node["name"],
+                            type=node["type"],
+                            description=node.get("description", ""),
+                            source_run_ids=[node.get("source_run_id", "")]
+                            if node.get("source_run_id")
+                            else [],
+                            properties={"confidence": node.get("confidence", 1.0)},
+                        )
+                    )
                 return entities
         except Exception as e:
             logger.error(f"Error getting entities for run {run_id}: {e}")
@@ -290,15 +303,19 @@ class KnowledgeGraph:
                 relations = []
                 for record in result:
                     rel = record["r"]
-                    relations.append(Relation(
-                        id=rel["id"],
-                        subject_id=record["source_id"],
-                        object_id=record["target_id"],
-                        type=rel["type"],
-                        weight=rel.get("confidence", 1.0),
-                        evidence=[rel.get("description", "")] if rel.get("description") else [],
-                        source_run_ids=[rel.get("source_run_id", "")] if rel.get("source_run_id") else [],
-                    ))
+                    relations.append(
+                        Relation(
+                            id=rel["id"],
+                            subject_id=record["source_id"],
+                            object_id=record["target_id"],
+                            type=rel["type"],
+                            weight=rel.get("confidence", 1.0),
+                            evidence=[rel.get("description", "")] if rel.get("description") else [],
+                            source_run_ids=[rel.get("source_run_id", "")]
+                            if rel.get("source_run_id")
+                            else [],
+                        )
+                    )
                 return relations
         except Exception as e:
             logger.error(f"Error getting relations for {entity_id}: {e}")
@@ -328,14 +345,18 @@ class KnowledgeGraph:
                     for node in [record["e"], record["connected"]]:
                         if node and node["id"] not in seen_ids:
                             seen_ids.add(node["id"])
-                            entities.append(Entity(
-                                id=node["id"],
-                                name=node["name"],
-                                type=node["type"],
-                                description=node.get("description", ""),
-                                source_run_ids=[node.get("source_run_id", "")] if node.get("source_run_id") else [],
-                                properties={"confidence": node.get("confidence", 1.0)},
-                            ))
+                            entities.append(
+                                Entity(
+                                    id=node["id"],
+                                    name=node["name"],
+                                    type=node["type"],
+                                    description=node.get("description", ""),
+                                    source_run_ids=[node.get("source_run_id", "")]
+                                    if node.get("source_run_id")
+                                    else [],
+                                    properties={"confidence": node.get("confidence", 1.0)},
+                                )
+                            )
 
                 # Get relations
                 rel_result = session.run(
@@ -350,15 +371,19 @@ class KnowledgeGraph:
                 relations = []
                 for record in rel_result:
                     rel = record["r"]
-                    relations.append(Relation(
-                        id=rel["id"],
-                        subject_id=record["source_id"],
-                        object_id=record["target_id"],
-                        type=rel["type"],
-                        weight=rel.get("confidence", 1.0),
-                        evidence=[rel.get("description", "")] if rel.get("description") else [],
-                        source_run_ids=[rel.get("source_run_id", "")] if rel.get("source_run_id") else [],
-                    ))
+                    relations.append(
+                        Relation(
+                            id=rel["id"],
+                            subject_id=record["source_id"],
+                            object_id=record["target_id"],
+                            type=rel["type"],
+                            weight=rel.get("confidence", 1.0),
+                            evidence=[rel.get("description", "")] if rel.get("description") else [],
+                            source_run_ids=[rel.get("source_run_id", "")]
+                            if rel.get("source_run_id")
+                            else [],
+                        )
+                    )
 
                 return entities, relations
         except Exception as e:
@@ -384,7 +409,9 @@ class KnowledgeGraph:
         try:
             with self.session() as session:
                 entity_count = session.run("MATCH (e:Entity) RETURN count(e) as c").single()["c"]
-                relation_count = session.run("MATCH ()-[r:RELATES]->() RETURN count(r) as c").single()["c"]
+                relation_count = session.run(
+                    "MATCH ()-[r:RELATES]->() RETURN count(r) as c"
+                ).single()["c"]
                 return {"entities": entity_count, "relations": relation_count}
         except Exception as e:
             logger.error(f"Error getting stats: {e}")

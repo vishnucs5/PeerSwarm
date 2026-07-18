@@ -1,6 +1,7 @@
 """
 ArXiv search tool for academic paper retrieval.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -14,6 +15,7 @@ logger = get_logger(__name__)
 
 class ArxivSearchResult:
     """Single ArXiv search result."""
+
     def __init__(self, entry: arxiv.Result):
         self.id = entry.entry_id
         self.title = entry.title
@@ -84,14 +86,18 @@ class ArxivTool:
         """Search for papers by author."""
         return self.search(f"au:{author}", max_results=max_results)
 
-    def search_by_category(self, category: str, query: str = "", max_results: int = 10) -> list[ArxivSearchResult]:
+    def search_by_category(
+        self, category: str, query: str = "", max_results: int = 10
+    ) -> list[ArxivSearchResult]:
         """Search within a specific category."""
         full_query = f"cat:{category}"
         if query:
             full_query = f"({query}) AND {full_query}"
         return self.search(full_query, max_results=max_results)
 
-    def get_recent_papers(self, category: str = "cs.AI", max_results: int = 5) -> list[ArxivSearchResult]:
+    def get_recent_papers(
+        self, category: str = "cs.AI", max_results: int = 5
+    ) -> list[ArxivSearchResult]:
         """Get most recent papers in a category."""
         return self.search_by_category(
             category=category,

@@ -1,6 +1,7 @@
 """
 Research Flow — CrewAI Flow state machine with quality loop.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -17,16 +18,20 @@ logger = get_logger(__name__)
 
 try:
     from crewai.flow import Flow, listen, router, start
+
     CREWAI_FLOW_AVAILABLE = True
 except ImportError:
+
     class Flow:
         def __class_getitem__(cls, item):
             return cls
+
         def __init__(self, **kwargs):
-            self.state = kwargs.get('state')
+            self.state = kwargs.get("state")
 
     def _noop(x=None, **_kwargs):
         return lambda f: f
+
     start = listen = router = _noop
     CREWAI_FLOW_AVAILABLE = False
 
@@ -51,7 +56,9 @@ class ResearchFlow(Flow[ResearchState]):
         self.state.question = question
         self.state.run_id = kwargs.get("run_id", str(uuid4())[:12])
         self.state.trace_id = kwargs.get("trace_id", "")
-        self.state.max_iterations = kwargs.get("max_iterations", get_settings().quality.max_iterations)
+        self.state.max_iterations = kwargs.get(
+            "max_iterations", get_settings().quality.max_iterations
+        )
         self.state.tags = kwargs.get("tags", [])
 
         from src.crew.tasks import (
@@ -74,11 +81,14 @@ class ResearchFlow(Flow[ResearchState]):
 
         settings = get_settings()
         self.quality_threshold = kwargs.get("quality_threshold", settings.quality.threshold)
-        self.hard_gate_threshold = kwargs.get("hard_gate_threshold", settings.quality.hard_gate_threshold)
+        self.hard_gate_threshold = kwargs.get(
+            "hard_gate_threshold", settings.quality.hard_gate_threshold
+        )
         self.max_iterations = self.state.max_iterations
 
         # Cost tracking
         from src.utils.cost_tracker import get_model_cost
+
         self._cost_tracker = get_model_cost
         self._costs_by_model: dict[str, float] = {}
 
@@ -91,10 +101,10 @@ class ResearchFlow(Flow[ResearchState]):
 
     def _track_agent_usage(self, task_obj) -> None:
         """Read _last_usage from task's agent and record cost."""
-        agent = getattr(task_obj, 'agent', None)
+        agent = getattr(task_obj, "agent", None)
         if agent is None:
             return
-        usage = getattr(agent, '_last_usage', None)
+        usage = getattr(agent, "_last_usage", None)
         if usage:
             self._track_cost(
                 agent.model,
@@ -145,9 +155,12 @@ class ResearchFlow(Flow[ResearchState]):
             }
             task_fn = agent_map.get(sq.assigned_researcher)
             if task_fn:
-                tasks.append(asyncio.to_thread(
-                    task_fn.execute, sq,
-                ))
+                tasks.append(
+                    asyncio.to_thread(
+                        task_fn.execute,
+                        sq,
+                    )
+                )
 
         try:
             results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -185,6 +198,7 @@ class ResearchFlow(Flow[ResearchState]):
         if not findings:
             logger.warning(f"[{self.state.run_id}] No findings to analyze")
             from src.models.research import Synthesis
+
             self.state.synthesis = Synthesis(
                 question=self.state.question,
                 plan_id=plan.id if plan else "",
@@ -194,8 +208,8 @@ class ResearchFlow(Flow[ResearchState]):
         synthesis = self.analysis.execute(findings, plan)
         self._track_agent_usage(self.analysis)
         self.state.synthesis = synthesis
-        clusters = len(synthesis.clusters) if hasattr(synthesis, 'clusters') else 0
-        insights = len(synthesis.key_insights) if hasattr(synthesis, 'key_insights') else 0
+        clusters = len(synthesis.clusters) if hasattr(synthesis, "clusters") else 0
+        insights = len(synthesis.key_insights) if hasattr(synthesis, "key_insights") else 0
         logger.info(f"[{self.state.run_id}] Analysis: {clusters} clusters, {insights} insights")
         return synthesis
 
@@ -211,11 +225,18 @@ class ResearchFlow(Flow[ResearchState]):
         if not synthesis:
             logger.warning(f"[{self.state.run_id}] No synthesis to evaluate")
             from src.models.quality import QualityGateResult, QualityScore
+
             result = QualityGateResult(
                 passed=False,
-                score=QualityScore(factual_accuracy=5, source_quality=5,
-                                    logical_coherence=5, completeness=5, clarity=5,
-                                    overall=5.0, iteration=self.state.iteration),
+                score=QualityScore(
+                    factual_accuracy=5,
+                    source_quality=5,
+                    logical_coherence=5,
+                    completeness=5,
+                    clarity=5,
+                    overall=5.0,
+                    iteration=self.state.iteration,
+                ),
                 action="revise_analysis",
                 reason="No synthesis available",
                 iteration=self.state.iteration,
@@ -233,15 +254,17 @@ class ResearchFlow(Flow[ResearchState]):
         )
         self._track_agent_usage(self.critique)
         self.state.quality_score = result.score
-        logger.info(f"[{self.state.run_id}] Quality gate: {result.score.overall}/10 -> {result.action}")
+        logger.info(
+            f"[{self.state.run_id}] Quality gate: {result.score.overall}/10 -> {result.action}"
+        )
         return result
 
     # ── STEP 5: Routing ───────────────────────────────────────────────
 
     @router(quality_gate)
-    def route_quality(self, result: QualityGateResult) -> Literal[
-        "write", "revise_research", "revise_analysis", "revise_write", "max_iterations"
-    ]:
+    def route_quality(
+        self, result: QualityGateResult
+    ) -> Literal["write", "revise_research", "revise_analysis", "revise_write", "max_iterations"]:
         """Route to next step based on quality evaluation."""
         if result.action == "write":
             return "write"
@@ -308,9 +331,7 @@ class ResearchFlow(Flow[ResearchState]):
     def write_report(self):
         """Write final research report."""
         log_msg = f"[{self.state.run_id}] Writing final report..."
-        return self._write_report(
-            self.writing.execute, "writing", logger.info, log_msg
-        )
+        return self._write_report(self.writing.execute, "writing", logger.info, log_msg)
 
     @listen("max_iterations")
     def write_with_warning(self):
@@ -353,6 +374,7 @@ class ResearchFlow(Flow[ResearchState]):
     def _current_quality_result(self) -> QualityGateResult:
         """Build a QualityGateResult from current state."""
         from src.models.quality import QualityGateResult
+
         score = self.state.quality_score
         return QualityGateResult(
             passed=False,
@@ -365,9 +387,14 @@ class ResearchFlow(Flow[ResearchState]):
 
     def _default_score(self):
         from src.models.quality import QualityScore
+
         return QualityScore(
-            factual_accuracy=5, source_quality=5, logical_coherence=5,
-            completeness=5, clarity=5, overall=5.0,
+            factual_accuracy=5,
+            source_quality=5,
+            logical_coherence=5,
+            completeness=5,
+            clarity=5,
+            overall=5.0,
             iteration=self.state.iteration,
         )
 
@@ -391,13 +418,17 @@ def run_research(
     flow.kickoff(inputs=inputs)
 
     state = flow.state
-    duration = state.duration_seconds if hasattr(state, 'duration_seconds') else 0
+    duration = state.duration_seconds if hasattr(state, "duration_seconds") else 0
     score = state.quality_score.overall if state.quality_score else 0
-    total_findings = len(state.get_all_findings()) if hasattr(state, 'get_all_findings') else 0
+    total_findings = len(state.get_all_findings()) if hasattr(state, "get_all_findings") else 0
 
-    cost_str = f", cost=${state.token_usage.cost_estimate:.4f}" if state.token_usage.cost_estimate else ""
-    logger.info(f"Research complete: {score}/10, {total_findings} findings, "
-                f"{duration}s, {state.iteration} iterations{cost_str}")
+    cost_str = (
+        f", cost=${state.token_usage.cost_estimate:.4f}" if state.token_usage.cost_estimate else ""
+    )
+    logger.info(
+        f"Research complete: {score}/10, {total_findings} findings, "
+        f"{duration}s, {state.iteration} iterations{cost_str}"
+    )
     return state
 
 

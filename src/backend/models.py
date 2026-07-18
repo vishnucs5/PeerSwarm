@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -77,8 +77,8 @@ class Job(BaseModel):
     error: str | None = None
     tags: list[str] = Field(default_factory=list)
     priority: Priority = Priority.normal
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
+    updated_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     result: ResearchResult | None = None
     duration_seconds: float = 0.0
 
@@ -87,4 +87,4 @@ class HealthResponse(BaseModel):
     status: str = "ok"
     uptime_seconds: float = 0.0
     version: str = "0.1.0"
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())

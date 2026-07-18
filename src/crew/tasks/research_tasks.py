@@ -1,6 +1,7 @@
 """
 Research tasks for all 3 researcher agents.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -23,21 +24,26 @@ class AcademicResearchTask:
     def __init__(self, agent: AcademicResearcherAgent):
         self.agent = agent
 
-    def execute(self, sub_question: SubQuestion, context: AgentContext | None = None,
-                **kwargs) -> list[ResearchFinding]:
+    def execute(
+        self, sub_question: SubQuestion, context: AgentContext | None = None, **kwargs
+    ) -> list[ResearchFinding]:
         ctx = context or AgentContext(question=sub_question.question)
-        findings = self.agent.execute(ctx, sub_question=sub_question.question,
-                                       sub_question_id=sub_question.id,
-                                       search_terms=sub_question.search_terms)
+        findings = self.agent.execute(
+            ctx,
+            sub_question=sub_question.question,
+            sub_question_id=sub_question.id,
+            search_terms=sub_question.search_terms,
+        )
         logger.info(f"[Academic] Sub-Q '{sub_question.question[:50]}': {len(findings)} findings")
         return findings
 
     def to_crewai_task(self, crewai_agent) -> Any:
         try:
             from crewai import Task as CrewTask
+
             return CrewTask(
                 description="Search academic databases (ArXiv) for evidence on the assigned sub-question. "
-                            "Extract key claims, assess source quality, and return structured findings.",
+                "Extract key claims, assess source quality, and return structured findings.",
                 agent=crewai_agent,
                 expected_output="List of ResearchFinding objects with claims, evidence, and source metadata",
             )
@@ -51,18 +57,23 @@ class WebResearchTask:
     def __init__(self, agent: WebResearcherAgent):
         self.agent = agent
 
-    def execute(self, sub_question: SubQuestion, context: AgentContext | None = None,
-                **kwargs) -> list[ResearchFinding]:
+    def execute(
+        self, sub_question: SubQuestion, context: AgentContext | None = None, **kwargs
+    ) -> list[ResearchFinding]:
         ctx = context or AgentContext(question=sub_question.question)
-        findings = self.agent.execute(ctx, sub_question=sub_question.question,
-                                       sub_question_id=sub_question.id,
-                                       search_terms=sub_question.search_terms)
+        findings = self.agent.execute(
+            ctx,
+            sub_question=sub_question.question,
+            sub_question_id=sub_question.id,
+            search_terms=sub_question.search_terms,
+        )
         logger.info(f"[Web] Sub-Q '{sub_question.question[:50]}': {len(findings)} findings")
         return findings
 
     def to_crewai_task(self, crewai_agent) -> Any:
         try:
             from crewai import Task as CrewTask
+
             return CrewTask(
                 description="Search web/industry sources (blogs, news, reports) for evidence on the assigned sub-question.",
                 agent=crewai_agent,
@@ -78,17 +89,20 @@ class KBResearchTask:
     def __init__(self, agent: KBResearcherAgent):
         self.agent = agent
 
-    def execute(self, sub_question: SubQuestion, context: AgentContext | None = None,
-                **kwargs) -> list[ResearchFinding]:
+    def execute(
+        self, sub_question: SubQuestion, context: AgentContext | None = None, **kwargs
+    ) -> list[ResearchFinding]:
         ctx = context or AgentContext(question=sub_question.question)
-        findings = self.agent.execute(ctx, sub_question=sub_question.question,
-                                       sub_question_id=sub_question.id)
+        findings = self.agent.execute(
+            ctx, sub_question=sub_question.question, sub_question_id=sub_question.id
+        )
         logger.info(f"[KB] Sub-Q '{sub_question.question[:50]}': {len(findings)} findings")
         return findings
 
     def to_crewai_task(self, crewai_agent) -> Any:
         try:
             from crewai import Task as CrewTask
+
             return CrewTask(
                 description="Search the internal knowledge base, knowledge graph, and prior run history for relevant findings.",
                 agent=crewai_agent,
@@ -105,6 +119,7 @@ def create_research_task(researcher_type: ResearcherType) -> Any:
         create_kb_researcher,
         create_web_researcher,
     )
+
     if researcher_type == "researcher_a":
         return AcademicResearchTask(create_academic_researcher())
     if researcher_type == "researcher_b":

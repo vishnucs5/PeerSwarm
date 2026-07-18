@@ -5,17 +5,20 @@ import json
 import streamlit as st
 
 from src.ui.components.api_client import api_get
-from src.ui.components.styling import metric_card, divider, empty_state
+from src.ui.components.styling import divider, empty_state, metric_card
 
 
 def render():
-    st.markdown("""
+    st.markdown(
+        """
     <div class="toolbar">
         <div class="toolbar-left">
             <span style="font-size: 1.5rem;">📄</span>
             <span class="toolbar-title">Research Results</span>
         </div>
-    </div>""", unsafe_allow_html=True)
+    </div>""",
+        unsafe_allow_html=True,
+    )
 
     job_id = st.text_input(
         "Job ID",
@@ -34,23 +37,30 @@ def render():
 
     result = st.session_state.get("current_result")
     if not result:
-        empty_state("📄", "No report loaded", "Enter a completed job ID and click Load Report to view results.")
+        empty_state(
+            "📄",
+            "No report loaded",
+            "Enter a completed job ID and click Load Report to view results.",
+        )
         return
 
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div class="card" style="margin-bottom: var(--space-6)">
         <div style="display: flex; align-items: center; gap: var(--space-3);">
             <span style="font-size: 1.5rem;">📄</span>
             <div>
                 <div style="font-family: var(--font-heading); font-size: var(--text-2xl); font-weight: 600;">
-                    {result.get('question', 'Research Report')[:100]}
+                    {result.get("question", "Research Report")[:100]}
                 </div>
                 <div style="font-size: var(--text-sm); color: var(--color-muted-foreground);">
-                    Duration: {result.get('duration_seconds', 0):.0f}s &middot; Iterations: {result.get('iterations', 0)} &middot; ID: {job_id}
+                    Duration: {result.get("duration_seconds", 0):.0f}s &middot; Iterations: {result.get("iterations", 0)} &middot; ID: {job_id}
                 </div>
             </div>
         </div>
-    </div>""", unsafe_allow_html=True)
+    </div>""",
+        unsafe_allow_html=True,
+    )
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -68,11 +78,14 @@ def render():
         dims = qs.get("dimensions", {})
         if dims:
             overall = qs.get("overall", 0) / 10
-            st.markdown(f"""
+            st.markdown(
+                f"""
             <div class="progress-bar" style="margin-bottom: var(--space-4); height: 12px;">
-                <div class="progress-fill {'success' if overall >= 0.7 else 'warning' if overall >= 0.4 else 'error'}" 
+                <div class="progress-fill {"success" if overall >= 0.7 else "warning" if overall >= 0.4 else "error"}" 
                      style="width: {overall * 100}%"></div>
-            </div>""", unsafe_allow_html=True)
+            </div>""",
+                unsafe_allow_html=True,
+            )
             dim_parts = [f"{k.replace('_', ' ').title()}: {v}/10" for k, v in dims.items()]
             st.caption(" | ".join(dim_parts))
 
@@ -88,10 +101,13 @@ def render():
     with col_takeaways:
         key_takeaways = result.get("key_takeaways", [])
         if key_takeaways:
-            st.markdown("""
+            st.markdown(
+                """
             <div class="card" style="margin-bottom: var(--space-4)">
                 <div class="card-header"><span class="card-title">💡 Key Takeaways</span></div>
-                <div class="card-body">""", unsafe_allow_html=True)
+                <div class="card-body">""",
+                unsafe_allow_html=True,
+            )
             for i, takeaway in enumerate(key_takeaways, 1):
                 st.markdown(f"{i}. {takeaway}")
             st.markdown("</div></div>", unsafe_allow_html=True)
@@ -99,10 +115,13 @@ def render():
     with col_refs:
         references = result.get("references", [])
         if references:
-            st.markdown("""
+            st.markdown(
+                """
             <div class="card" style="margin-bottom: var(--space-4)">
                 <div class="card-header"><span class="card-title">📚 References</span></div>
-                <div class="card-body">""", unsafe_allow_html=True)
+                <div class="card-body">""",
+                unsafe_allow_html=True,
+            )
             for i, ref in enumerate(references, 1):
                 st.markdown(f"{i}. {ref}")
             st.markdown("</div></div>", unsafe_allow_html=True)
@@ -119,7 +138,9 @@ def render():
             with st.expander(f"## {title}", expanded=False):
                 st.markdown(content)
                 if citations:
-                    st.markdown("**Citations:** " + " ".join(f"[{j}]" for j, _ in enumerate(citations, 1)))
+                    st.markdown(
+                        "**Citations:** " + " ".join(f"[{j}]" for j, _ in enumerate(citations, 1))
+                    )
                     for j, c in enumerate(citations, 1):
                         st.caption(f"[{j}] {c}")
 

@@ -1,30 +1,41 @@
 """
 Tests for quality models.
 """
+
 from __future__ import annotations
 
 import pytest
 from pydantic import ValidationError
 
 from src.models.quality import (
-    QualityScore, QualityGateResult, QualityDimension,
-    RevisionDirective, HardGateFailure,
+    HardGateFailure,
+    QualityDimension,
+    QualityGateResult,
+    QualityScore,
+    RevisionDirective,
 )
 
 
 class TestQualityScore:
     def test_create_valid(self):
         score = QualityScore(
-            factual_accuracy=8, source_quality=7,
-            logical_coherence=9, completeness=6, clarity=8,
-            overall=7.6, iteration=1,
+            factual_accuracy=8,
+            source_quality=7,
+            logical_coherence=9,
+            completeness=6,
+            clarity=8,
+            overall=7.6,
+            iteration=1,
         )
         assert score.factual_accuracy == 8
 
     def test_overall_computed(self):
         score = QualityScore(
-            factual_accuracy=8, source_quality=8,
-            logical_coherence=8, completeness=8, clarity=8,
+            factual_accuracy=8,
+            source_quality=8,
+            logical_coherence=8,
+            completeness=8,
+            clarity=8,
             iteration=1,
         )
         assert score.overall == 8.0
@@ -32,7 +43,8 @@ class TestQualityScore:
     def test_hard_gate_failure_manual(self):
         failure = HardGateFailure(
             dimension=QualityDimension.FACTUAL_ACCURACY,
-            score=5, threshold=6,
+            score=5,
+            threshold=6,
             reason="Below threshold",
         )
         assert failure.dimension == QualityDimension.FACTUAL_ACCURACY
@@ -41,23 +53,34 @@ class TestQualityScore:
     def test_out_of_range_score(self):
         with pytest.raises(ValidationError):
             QualityScore(
-                factual_accuracy=11, source_quality=7,
-                logical_coherence=8, completeness=7, clarity=8,
-                overall=7.0, iteration=1,
+                factual_accuracy=11,
+                source_quality=7,
+                logical_coherence=8,
+                completeness=7,
+                clarity=8,
+                overall=7.0,
+                iteration=1,
             )
 
     def test_negative_score(self):
         with pytest.raises(ValidationError):
             QualityScore(
-                factual_accuracy=-1, source_quality=7,
-                logical_coherence=8, completeness=7, clarity=8,
-                overall=7.0, iteration=1,
+                factual_accuracy=-1,
+                source_quality=7,
+                logical_coherence=8,
+                completeness=7,
+                clarity=8,
+                overall=7.0,
+                iteration=1,
             )
 
     def test_revision_priority_research(self):
         score = QualityScore(
-            factual_accuracy=4, source_quality=8,
-            logical_coherence=8, completeness=8, clarity=8,
+            factual_accuracy=4,
+            source_quality=8,
+            logical_coherence=8,
+            completeness=8,
+            clarity=8,
             iteration=1,
         )
         assert score.revision_priority in ("research", "analysis", "writing", "none")
@@ -111,7 +134,8 @@ class TestHardGateFailure:
     def test_create(self):
         failure = HardGateFailure(
             dimension=QualityDimension.FACTUAL_ACCURACY,
-            score=4, threshold=6,
+            score=4,
+            threshold=6,
             reason="Too low",
         )
         assert failure.score == 4

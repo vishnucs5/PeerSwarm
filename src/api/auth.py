@@ -1,6 +1,7 @@
 """
 API key authentication middleware.
 """
+
 from __future__ import annotations
 
 from fastapi import FastAPI, Request
@@ -36,7 +37,9 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         path = request.url.path
-        if path in PUBLIC_PATHS or any(path.startswith(p) for p in PUBLIC_PATHS if p not in ("/", "/api/v1")):
+        if path in PUBLIC_PATHS or any(
+            path.startswith(p) for p in PUBLIC_PATHS if p not in ("/", "/api/v1")
+        ):
             return await call_next(request)
 
         api_key = request.headers.get("X-API-Key")

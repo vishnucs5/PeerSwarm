@@ -2,6 +2,7 @@
 Redis-backed sliding-window rate limiter for multi-worker FastAPI deployments.
 Falls back to in-memory when Redis is unavailable.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -44,7 +45,11 @@ class InMemoryRateLimiter:
         count = len(timestamps)
         remaining = max(0, self.max_requests - count)
         if count >= self.max_requests:
-            retry_after = int(timestamps[0] + self.window_seconds - now) if timestamps else self.window_seconds
+            retry_after = (
+                int(timestamps[0] + self.window_seconds - now)
+                if timestamps
+                else self.window_seconds
+            )
             return False, remaining, retry_after
         timestamps.append(now)
         remaining = max(0, self.max_requests - len(timestamps))
@@ -67,11 +72,15 @@ class InMemoryRateLimiter:
         return self.cleanup_old_entries()
 
 
-
 class RedisRateLimiter:
     """Redis-backed sliding-window rate limiter for multi-worker deployments."""
 
-    def __init__(self, max_requests: int = 60, window_seconds: int = 60, redis_url: str = "redis://localhost:6379/0"):
+    def __init__(
+        self,
+        max_requests: int = 60,
+        window_seconds: int = 60,
+        redis_url: str = "redis://localhost:6379/0",
+    ):
         self.max_requests = max_requests
         self.window_seconds = window_seconds
         self.redis_url = redis_url
@@ -81,6 +90,7 @@ class RedisRateLimiter:
         if self._redis is None:
             try:
                 import redis.asyncio as aioredis
+
                 self._redis = await aioredis.from_url(
                     self.redis_url,
                     decode_responses=True,
@@ -186,7 +196,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         while True:
             try:
                 await asyncio.sleep(300)
-                if hasattr(self.limiter, 'cleanup_old_entries'):
+                if hasattr(self.limiter, "cleanup_old_entries"):
                     removed = await self.limiter.cleanup_old_entries()
                     if removed > 0:
                         logger.debug(f"Rate limiter cleanup: removed {removed} expired entries")
@@ -196,7 +206,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 logger.warning(f"Rate limiter cleanup error: {e}")
 
     def _get_client_key(self, request: Request) -> str:
-        if hasattr(self.limiter, '_get_client_key'):
+        if hasattr(self.limiter, "_get_client_key"):
             return self.limiter._get_client_key(request)
         forwarded = request.headers.get("X-Forwarded-For")
         if forwarded:
@@ -232,12 +242,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         response.headers["X-RateLimit-Limit"] = str(self.max_requests)
         response.headers["X-RateLimit-Remaining"] = str(remaining)
-        response.headers["X-RateLimit-Reset"] = str(
-            int(time.time() + self.window_seconds)
-        )
+        response.headers["X-RateLimit-Reset"] = str(int(time.time() + self.window_seconds))
         return response
 
 
 # Alias for backward compatibility (e.g. tests)
 SlidingWindowRateLimiter = InMemoryRateLimiter
-

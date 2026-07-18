@@ -1,6 +1,7 @@
 """
 Tests for LLM integration in agents.
 """
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -38,10 +39,12 @@ def make_mock_completion(content: str, prompt_tokens: int = 100, completion_toke
 
 def mock_llm(agent, content, prompt_tokens=100, completion_tokens=50):
     """Patch _llm_completion to return content and set _last_usage."""
+
     def side_effect(messages, context=None, response_format=None):
         agent._last_usage = {"prompt_tokens": prompt_tokens, "completion_tokens": completion_tokens}
         return content, agent._last_usage
-    return patch.object(agent, '_llm_completion', side_effect=side_effect)
+
+    return patch.object(agent, "_llm_completion", side_effect=side_effect)
 
 
 class TestPlannerAgentLLM:
@@ -94,10 +97,14 @@ class TestCriticAgentLLM:
         agent = CriticAgent()
         findings = [
             ResearchFinding(
-                sub_question_id="sq1", researcher="researcher_a",
-                claim="RAG improves accuracy", evidence="Study shows 30% improvement",
-                evidence_type=EvidenceType.ACADEMIC_PAPER, source="arxiv",
-                confidence=0.9, relevance=0.9,
+                sub_question_id="sq1",
+                researcher="researcher_a",
+                claim="RAG improves accuracy",
+                evidence="Study shows 30% improvement",
+                evidence_type=EvidenceType.ACADEMIC_PAPER,
+                source="arxiv",
+                confidence=0.9,
+                relevance=0.9,
             )
         ]
         synthesis = Synthesis(question="What is RAG?", plan_id="p1")
@@ -123,8 +130,12 @@ class TestCriticAgentLLM:
     def test_route_quality_hard_gate(self, context):
         agent = CriticAgent()
         score = QualityScore(
-            factual_accuracy=4, source_quality=7, logical_coherence=7,
-            completeness=7, clarity=7, iteration=1,
+            factual_accuracy=4,
+            source_quality=7,
+            logical_coherence=7,
+            completeness=7,
+            clarity=7,
+            iteration=1,
         )
         result = agent.route_quality(score, max_iterations=3)
         assert result.passed is False
@@ -134,8 +145,12 @@ class TestCriticAgentLLM:
     def test_route_quality_max_iterations(self, context):
         agent = CriticAgent()
         score = QualityScore(
-            factual_accuracy=4, source_quality=7, logical_coherence=7,
-            completeness=7, clarity=7, iteration=3,
+            factual_accuracy=4,
+            source_quality=7,
+            logical_coherence=7,
+            completeness=7,
+            clarity=7,
+            iteration=3,
         )
         result = agent.route_quality(score, max_iterations=3)
         assert result.passed is True
@@ -147,10 +162,14 @@ class TestAnalystAgentLLM:
         agent = AnalystAgent()
         findings = [
             ResearchFinding(
-                sub_question_id="sq1", researcher="researcher_a",
-                claim="RAG improves accuracy", evidence="Study",
-                evidence_type=EvidenceType.ACADEMIC_PAPER, source="arxiv",
-                confidence=0.9, relevance=0.9,
+                sub_question_id="sq1",
+                researcher="researcher_a",
+                claim="RAG improves accuracy",
+                evidence="Study",
+                evidence_type=EvidenceType.ACADEMIC_PAPER,
+                source="arxiv",
+                confidence=0.9,
+                relevance=0.9,
             )
         ]
         json_output = """{

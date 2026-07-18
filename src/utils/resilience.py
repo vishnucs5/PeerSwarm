@@ -1,12 +1,14 @@
 """
 Retry logic with exponential backoff and circuit breaker pattern for external services.
 """
+
 from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from src.utils.logger import get_logger
 
@@ -17,6 +19,7 @@ T = TypeVar("T")
 
 class CircuitState(Enum):
     """Circuit breaker states."""
+
     CLOSED = "closed"
     OPEN = "open"
     HALF_OPEN = "half_open"
@@ -124,6 +127,7 @@ async def retry_with_backoff(
     for attempt in range(1, config.max_attempts + 1):
         if circuit_breaker and not circuit_breaker.is_allowed():
             from src.api.error_handlers import CircuitBreakerOpenError
+
             raise CircuitBreakerOpenError(
                 service=circuit_breaker.name,
                 retry_after_seconds=circuit_breaker.get_retry_after(),
@@ -163,6 +167,10 @@ async def retry_with_backoff(
             )
             await asyncio.sleep(delay)
 
+    if last_exception is not None:
+        raise last_exception
+    raise RuntimeError("Unexpected end of retry loop")
+
 
 def create_circuit_breaker(
     name: str,
@@ -181,4 +189,6 @@ def create_circuit_breaker(
 groq_circuit_breaker = create_circuit_breaker("groq", failure_threshold=3, recovery_timeout=30)
 tavily_circuit_breaker = create_circuit_breaker("tavily", failure_threshold=5, recovery_timeout=60)
 serper_circuit_breaker = create_circuit_breaker("serper", failure_threshold=5, recovery_timeout=60)
-supabase_circuit_breaker = create_circuit_breaker("supabase", failure_threshold=3, recovery_timeout=30)
+supabase_circuit_breaker = create_circuit_breaker(
+    "supabase", failure_threshold=3, recovery_timeout=30
+)

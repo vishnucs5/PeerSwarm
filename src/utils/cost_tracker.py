@@ -1,6 +1,7 @@
 """
 Cost tracking for LLM API calls.
 """
+
 from __future__ import annotations
 
 from src.utils.logger import get_logger

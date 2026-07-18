@@ -2,11 +2,11 @@
 Security headers middleware for FastAPI.
 Implements CSP, HSTS, X-Frame-Options, and other security headers.
 """
+
 from __future__ import annotations
 
 from fastapi import FastAPI, Request
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
 
 from src.utils.logger import get_logger
 

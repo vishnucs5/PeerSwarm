@@ -1,6 +1,7 @@
 """
 Critic agent - evaluates research quality and produces quality scores with routing directives.
 """
+
 from __future__ import annotations
 
 import json
@@ -9,7 +10,6 @@ from typing import Any
 from src.config import get_model_for_agent
 from src.crew.agents.base import AgentContext, BaseAgent
 from src.models.quality import (
-    QualityDimension,
     QualityGateResult,
     QualityScore,
 )
@@ -111,22 +111,33 @@ identify subtle issues. You route failures to the right agents for targeted fixe
         logger.info(f"Quality score: {score.overall}/10 (iteration {context.iteration})")
         return score
 
-    def _llm_evaluate(self, synthesis: Any, findings: list[Any], context: AgentContext) -> QualityScore | None:
+    def _llm_evaluate(
+        self, synthesis: Any, findings: list[Any], context: AgentContext
+    ) -> QualityScore | None:
         """Evaluate via LLM with fallback to None (use heuristic)."""
-        summary = synthesis.executive_summary if hasattr(synthesis, 'executive_summary') else str(synthesis)
+        summary = (
+            synthesis.executive_summary
+            if hasattr(synthesis, "executive_summary")
+            else str(synthesis)
+        )
         clusters_summary = []
-        if hasattr(synthesis, 'clusters'):
+        if hasattr(synthesis, "clusters"):
             for c in synthesis.clusters:
-                clusters_summary.append(f"{c.theme}: {len(c.findings)} findings - {c.summary[:200]}")
+                clusters_summary.append(
+                    f"{c.theme}: {len(c.findings)} findings - {c.summary[:200]}"
+                )
         findings_summary = "\n".join(f"- {f.claim[:200]}" for f in findings[:10])
 
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": (
-                f"Executive summary:\n{summary[:1000]}\n\n"
-                f"Clusters:\n{chr(10).join(clusters_summary[:5])}\n\n"
-                f"Findings:\n{findings_summary[:2000]}"
-            )},
+            {
+                "role": "user",
+                "content": (
+                    f"Executive summary:\n{summary[:1000]}\n\n"
+                    f"Clusters:\n{chr(10).join(clusters_summary[:5])}\n\n"
+                    f"Findings:\n{findings_summary[:2000]}"
+                ),
+            },
         ]
         try:
             content, usage = self._llm_completion(messages, context)
@@ -166,21 +177,21 @@ identify subtle issues. You route failures to the right agents for targeted fixe
         scores = {}
 
         num_findings = len(findings) if findings else 0
-        num_clusters = len(synthesis.clusters) if hasattr(synthesis, 'clusters') else 0
+        num_clusters = len(synthesis.clusters) if hasattr(synthesis, "clusters") else 0
 
         factual_accuracy = 7
         if num_findings >= 8:
             factual_accuracy = 8
         elif num_findings < 3:
             factual_accuracy = 4
-        if hasattr(synthesis, 'contradictions') and synthesis.contradictions:
+        if hasattr(synthesis, "contradictions") and synthesis.contradictions:
             factual_accuracy = max(3, factual_accuracy - 2)
         scores["factual_accuracy"] = factual_accuracy
 
         source_quality = 7
-        if hasattr(synthesis, 'citations') and len(synthesis.citations) >= 5:
+        if hasattr(synthesis, "citations") and len(synthesis.citations) >= 5:
             source_quality = 8
-        elif hasattr(synthesis, 'citations') and len(synthesis.citations) < 2:
+        elif hasattr(synthesis, "citations") and len(synthesis.citations) < 2:
             source_quality = 4
         scores["source_quality"] = source_quality
 
@@ -189,21 +200,21 @@ identify subtle issues. You route failures to the right agents for targeted fixe
             logical_coherence = 8
         elif num_clusters < 2:
             logical_coherence = 5
-        if hasattr(synthesis, 'executive_summary') and len(synthesis.executive_summary) > 50:
+        if hasattr(synthesis, "executive_summary") and len(synthesis.executive_summary) > 50:
             logical_coherence = min(9, logical_coherence + 1)
         scores["logical_coherence"] = logical_coherence
 
         completeness = 7
-        if hasattr(synthesis, 'key_insights') and len(synthesis.key_insights) >= 3:
+        if hasattr(synthesis, "key_insights") and len(synthesis.key_insights) >= 3:
             completeness = 8
         else:
             completeness = 5
-        if hasattr(synthesis, 'limitations') and synthesis.limitations:
+        if hasattr(synthesis, "limitations") and synthesis.limitations:
             completeness = min(9, completeness + 1)
         scores["completeness"] = completeness
 
         clarity = 7
-        if hasattr(synthesis, 'executive_summary') and synthesis.executive_summary:
+        if hasattr(synthesis, "executive_summary") and synthesis.executive_summary:
             clarity = 8 if len(synthesis.executive_summary) > 100 else 6
         scores["clarity"] = clarity
 
@@ -251,18 +262,19 @@ identify subtle issues. You route failures to the right agents for targeted fixe
         if scores["clarity"] < 7:
             issues.append("Clarity needs improvement - simplify language and add structure")
 
-        if hasattr(synthesis, 'evidence_gaps') and synthesis.evidence_gaps:
+        if hasattr(synthesis, "evidence_gaps") and synthesis.evidence_gaps:
             for gap in synthesis.evidence_gaps[:2]:
                 issues.append(f"Evidence gap: {gap}")
 
-        if hasattr(synthesis, 'contradictions') and synthesis.contradictions:
+        if hasattr(synthesis, "contradictions") and synthesis.contradictions:
             for c in synthesis.contradictions[:2]:
                 issues.append(f"Contradiction: {c}")
 
         return issues[:5]
 
-    def _generate_suggestions(self, synthesis: Any, scores: dict[str, int],
-                              issues: list[str]) -> list[str]:
+    def _generate_suggestions(
+        self, synthesis: Any, scores: dict[str, int], issues: list[str]
+    ) -> list[str]:
         """Generate actionable suggestions for improvement."""
         suggestions = []
 

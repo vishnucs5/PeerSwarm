@@ -1,6 +1,7 @@
 """
 Planning task - PI agent decomposes questions into research plans.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -28,14 +29,17 @@ class PlanningTask:
 
     def _log_plan(self, plan: ResearchPlan):
         """Log plan details."""
-        sub_qs = [f"  {i+1}. [{sq.assigned_researcher}] {sq.question[:80]}"
-                  for i, sq in enumerate(plan.sub_questions)]
+        sub_qs = [
+            f"  {i + 1}. [{sq.assigned_researcher}] {sq.question[:80]}"
+            for i, sq in enumerate(plan.sub_questions)
+        ]
         logger.info("Research plan created:\n" + "\n".join(sub_qs))
 
     def to_crewai_task(self, crewai_agent) -> Any:
         """Convert to CrewAI Task format."""
         try:
             from crewai import Task as CrewTask
+
             return CrewTask(
                 description=self._get_description(),
                 agent=crewai_agent,
@@ -66,5 +70,6 @@ Output a complete ResearchPlan with all sub-questions, strategies, and risk asse
 def create_planning_task(planner: PlannerAgent | None = None) -> PlanningTask:
     if planner is None:
         from src.crew.agents import create_planner_agent
+
         planner = create_planner_agent()
     return PlanningTask(planner)

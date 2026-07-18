@@ -1,6 +1,7 @@
 """
 ChromaDB vector store for research findings.
 """
+
 from __future__ import annotations
 
 import html
@@ -73,9 +74,13 @@ def validate_search_query(query: SearchQuery) -> SearchQuery:
             if len(key) > MAX_FILTER_KEY_LENGTH:
                 raise ValueError(f"Filter key exceeds maximum length of {MAX_FILTER_KEY_LENGTH}")
             if isinstance(value, str) and len(value) > MAX_FILTER_VALUE_LENGTH:
-                raise ValueError(f"Filter value exceeds maximum length of {MAX_FILTER_VALUE_LENGTH}")
+                raise ValueError(
+                    f"Filter value exceeds maximum length of {MAX_FILTER_VALUE_LENGTH}"
+                )
             sanitized_key = sanitize_string(key, MAX_FILTER_KEY_LENGTH)
-            sanitized_value = sanitize_string(value, MAX_FILTER_VALUE_LENGTH) if isinstance(value, str) else value
+            sanitized_value = (
+                sanitize_string(value, MAX_FILTER_VALUE_LENGTH) if isinstance(value, str) else value
+            )
             sanitized_filters[sanitized_key] = sanitized_value
 
     return SearchQuery(
@@ -149,19 +154,21 @@ class VectorStore:
             self.collection.add(
                 ids=[entry.id],
                 documents=[entry.content],
-                metadatas=[{
-                    "type": entry.type.value,
-                    "source_run_id": entry.source_run_id or "",
-                    "tags": ",".join(entry.tags),
-                    "entity_type": entry.entity_type.value if entry.entity_type else "",
-                    "entity_name": entry.entity_name or "",
-                    "subject_id": entry.subject_id or "",
-                    "object_id": entry.object_id or "",
-                    "relation_type": entry.relation_type.value if entry.relation_type else "",
-                    "created_at": entry.created_at.isoformat(),
-                    "updated_at": entry.updated_at.isoformat(),
-                    "version": entry.version,
-                }],
+                metadatas=[
+                    {
+                        "type": entry.type.value,
+                        "source_run_id": entry.source_run_id or "",
+                        "tags": ",".join(entry.tags),
+                        "entity_type": entry.entity_type.value if entry.entity_type else "",
+                        "entity_name": entry.entity_name or "",
+                        "subject_id": entry.subject_id or "",
+                        "object_id": entry.object_id or "",
+                        "relation_type": entry.relation_type.value if entry.relation_type else "",
+                        "created_at": entry.created_at.isoformat(),
+                        "updated_at": entry.updated_at.isoformat(),
+                        "version": entry.version,
+                    }
+                ],
                 embeddings=[entry.embedding] if entry.embedding else None,
             )
             return True
@@ -178,19 +185,22 @@ class VectorStore:
             self.collection.add(
                 ids=[e.id for e in entries],
                 documents=[e.content for e in entries],
-                metadatas=[{
-                    "type": e.type.value,
-                    "source_run_id": e.source_run_id or "",
-                    "tags": ",".join(e.tags),
-                    "entity_type": e.entity_type.value if e.entity_type else "",
-                    "entity_name": e.entity_name or "",
-                    "subject_id": e.subject_id or "",
-                    "object_id": e.object_id or "",
-                    "relation_type": e.relation_type.value if e.relation_type else "",
-                    "created_at": e.created_at.isoformat(),
-                    "updated_at": e.updated_at.isoformat(),
-                    "version": e.version,
-                } for e in entries],
+                metadatas=[
+                    {
+                        "type": e.type.value,
+                        "source_run_id": e.source_run_id or "",
+                        "tags": ",".join(e.tags),
+                        "entity_type": e.entity_type.value if e.entity_type else "",
+                        "entity_name": e.entity_name or "",
+                        "subject_id": e.subject_id or "",
+                        "object_id": e.object_id or "",
+                        "relation_type": e.relation_type.value if e.relation_type else "",
+                        "created_at": e.created_at.isoformat(),
+                        "updated_at": e.updated_at.isoformat(),
+                        "version": e.version,
+                    }
+                    for e in entries
+                ],
             )
             # If entries have mixed embeddings, re-add with embeddings preserved
             if not all(e.embedding for e in entries) and any(e.embedding for e in entries):
@@ -199,19 +209,27 @@ class VectorStore:
                     self.collection.add(
                         ids=[e.id],
                         documents=[e.content],
-                        metadatas=[{k: v for k, v in {
-                            "type": e.type.value,
-                            "source_run_id": e.source_run_id or "",
-                            "tags": ",".join(e.tags),
-                            "entity_type": e.entity_type.value if e.entity_type else "",
-                            "entity_name": e.entity_name or "",
-                            "subject_id": e.subject_id or "",
-                            "object_id": e.object_id or "",
-                            "relation_type": e.relation_type.value if e.relation_type else "",
-                            "created_at": e.created_at.isoformat(),
-                            "updated_at": e.updated_at.isoformat(),
-                            "version": e.version,
-                        }.items() if v}],
+                        metadatas=[
+                            {
+                                k: v
+                                for k, v in {
+                                    "type": e.type.value,
+                                    "source_run_id": e.source_run_id or "",
+                                    "tags": ",".join(e.tags),
+                                    "entity_type": e.entity_type.value if e.entity_type else "",
+                                    "entity_name": e.entity_name or "",
+                                    "subject_id": e.subject_id or "",
+                                    "object_id": e.object_id or "",
+                                    "relation_type": e.relation_type.value
+                                    if e.relation_type
+                                    else "",
+                                    "created_at": e.created_at.isoformat(),
+                                    "updated_at": e.updated_at.isoformat(),
+                                    "version": e.version,
+                                }.items()
+                                if v
+                            }
+                        ],
                         embeddings=[e.embedding],
                     )
             return len(entries)
@@ -228,19 +246,21 @@ class VectorStore:
             self.collection.update(
                 ids=[entry.id],
                 documents=[entry.content],
-                metadatas=[{
-                    "type": entry.type.value,
-                    "source_run_id": entry.source_run_id or "",
-                    "tags": ",".join(entry.tags),
-                    "entity_type": entry.entity_type.value if entry.entity_type else "",
-                    "entity_name": entry.entity_name or "",
-                    "subject_id": entry.subject_id or "",
-                    "object_id": entry.object_id or "",
-                    "relation_type": entry.relation_type.value if entry.relation_type else "",
-                    "created_at": entry.created_at.isoformat(),
-                    "updated_at": now.isoformat(),
-                    "version": new_version,
-                }],
+                metadatas=[
+                    {
+                        "type": entry.type.value,
+                        "source_run_id": entry.source_run_id or "",
+                        "tags": ",".join(entry.tags),
+                        "entity_type": entry.entity_type.value if entry.entity_type else "",
+                        "entity_name": entry.entity_name or "",
+                        "subject_id": entry.subject_id or "",
+                        "object_id": entry.object_id or "",
+                        "relation_type": entry.relation_type.value if entry.relation_type else "",
+                        "created_at": entry.created_at.isoformat(),
+                        "updated_at": now.isoformat(),
+                        "version": new_version,
+                    }
+                ],
                 embeddings=[entry.embedding] if entry.embedding else None,
             )
             return True
@@ -251,7 +271,9 @@ class VectorStore:
     def get_entry(self, entry_id: str) -> MemoryEntry | None:
         """Get a memory entry by ID."""
         try:
-            result = self.collection.get(ids=[entry_id], include=["documents", "metadatas", "embeddings"])
+            result = self.collection.get(
+                ids=[entry_id], include=["documents", "metadatas", "embeddings"]
+            )
             if result["ids"]:
                 return self._result_to_entry(result, 0)
         except Exception as e:
@@ -301,8 +323,9 @@ class VectorStore:
                 query_texts=[validated_query.query],
                 n_results=validated_query.top_k,
                 where=where if where else None,
-                include=["documents", "metadatas", "distances", "embeddings"] if validated_query.include_embeddings
-                    else ["documents", "metadatas", "distances"],
+                include=["documents", "metadatas", "distances", "embeddings"]
+                if validated_query.include_embeddings
+                else ["documents", "metadatas", "distances"],
             )
 
             results = []
@@ -311,14 +334,22 @@ class VectorStore:
                     entry = self._query_result_to_entry(result, i)
                     if entry:
                         score = 1 - result["distances"][0][i] if result["distances"] else 1.0
-                        min_score = validated_query.min_score if validated_query.min_score is not None else 0.0
+                        min_score = (
+                            validated_query.min_score
+                            if validated_query.min_score is not None
+                            else 0.0
+                        )
                         if score >= min_score:
-                            matched_text = self._extract_matched_text(entry.content, validated_query.query)
-                            results.append(SearchResult(
-                                entry=entry,
-                                score=score,
-                                matched_text=matched_text,
-                            ))
+                            matched_text = self._extract_matched_text(
+                                entry.content, validated_query.query
+                            )
+                            results.append(
+                                SearchResult(
+                                    entry=entry,
+                                    score=score,
+                                    matched_text=matched_text,
+                                )
+                            )
 
             return SearchResponse(
                 results=results,
@@ -431,8 +462,12 @@ class VectorStore:
                 subject_id=meta.get("subject_id") or None,
                 object_id=meta.get("object_id") or None,
                 relation_type=meta.get("relation_type") or None,
-                created_at=datetime.fromisoformat(meta["created_at"]) if meta.get("created_at") else datetime.now(UTC),
-                updated_at=datetime.fromisoformat(meta["updated_at"]) if meta.get("updated_at") else datetime.now(UTC),
+                created_at=datetime.fromisoformat(meta["created_at"])
+                if meta.get("created_at")
+                else datetime.now(UTC),
+                updated_at=datetime.fromisoformat(meta["updated_at"])
+                if meta.get("updated_at")
+                else datetime.now(UTC),
                 version=meta.get("version", 1),
             )
         except Exception as e:
@@ -456,8 +491,12 @@ class VectorStore:
                 subject_id=meta.get("subject_id") or None,
                 object_id=meta.get("object_id") or None,
                 relation_type=meta.get("relation_type") or None,
-                created_at=datetime.fromisoformat(meta["created_at"]) if meta.get("created_at") else datetime.now(UTC),
-                updated_at=datetime.fromisoformat(meta["updated_at"]) if meta.get("updated_at") else datetime.now(UTC),
+                created_at=datetime.fromisoformat(meta["created_at"])
+                if meta.get("created_at")
+                else datetime.now(UTC),
+                updated_at=datetime.fromisoformat(meta["updated_at"])
+                if meta.get("updated_at")
+                else datetime.now(UTC),
                 version=meta.get("version", 1),
             )
         except Exception as e:

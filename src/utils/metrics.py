@@ -1,6 +1,7 @@
 """
 Prometheus metrics for observability.
 """
+
 from __future__ import annotations
 
 import time
@@ -49,6 +50,7 @@ RATE_LIMIT_HITS = Counter(
 
 def add_metrics_middleware(app: FastAPI) -> None:
     """Middleware that records request count and duration."""
+
     @app.middleware("http")
     async def metrics_middleware(request: Request, call_next: Callable) -> Response:
         method = request.method

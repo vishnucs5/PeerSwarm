@@ -1,6 +1,7 @@
 """
 PI (Planner) agent - decomposes research questions into structured plans.
 """
+
 from __future__ import annotations
 
 import json
@@ -48,6 +49,7 @@ class PlannerAgent(BaseAgent):
 
     def __init__(self, model: str | None = None, verbose: bool = False):
         from src.tools.knowledge_base import get_kb_tool
+
         kb = get_kb_tool()
         super().__init__(
             role="Principal Investigator",
@@ -75,7 +77,10 @@ and can identify the right approach for each sub-question.""",
         """Generate a research plan via LLM with fallback to heuristic."""
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": f"Research question: {question}\n\nProduce a structured ResearchPlan in JSON."},
+            {
+                "role": "user",
+                "content": f"Research question: {question}\n\nProduce a structured ResearchPlan in JSON.",
+            },
         ]
         try:
             content, usage = self._llm_completion(messages, context)

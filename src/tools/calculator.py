@@ -1,6 +1,7 @@
 """
 Safe calculator tool for mathematical expressions.
 """
+
 from __future__ import annotations
 
 import ast
@@ -33,7 +34,7 @@ class CalculatorTool:
         self.allowed_names = {
             "pi": 3.141592653589793,
             "e": 2.718281828459045,
-            "sqrt": lambda x: x ** 0.5,
+            "sqrt": lambda x: x**0.5,
             "abs": abs,
             "round": round,
             "min": min,
@@ -93,7 +94,9 @@ class CalculatorTool:
 
         raise ValueError(f"Unsupported syntax: {type(node).__name__}")
 
-    def calculate_statistics(self, numbers: list[float], operation: str = "mean") -> dict[str, float]:
+    def calculate_statistics(
+        self, numbers: list[float], operation: str = "mean"
+    ) -> dict[str, float]:
         """Calculate statistical measures."""
         if not numbers:
             return {"error": "Empty list"}
@@ -137,8 +140,8 @@ class CalculatorTool:
             ("g", "oz"): lambda x: x / 28.3495,
             ("oz", "g"): lambda x: x * 28.3495,
             # Temperature
-            ("c", "f"): lambda x: x * 9/5 + 32,
-            ("f", "c"): lambda x: (x - 32) * 5/9,
+            ("c", "f"): lambda x: x * 9 / 5 + 32,
+            ("f", "c"): lambda x: (x - 32) * 5 / 9,
             # Volume
             ("l", "gal"): lambda x: x / 3.78541,
             ("gal", "l"): lambda x: x * 3.78541,

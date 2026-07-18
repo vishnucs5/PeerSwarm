@@ -1,6 +1,7 @@
 """
 Evaluator — runs quality evaluations on research outputs.
 """
+
 from __future__ import annotations
 
 import json
@@ -24,6 +25,7 @@ class ResearchEvaluator:
 
     def __init__(self):
         from src.crew.agents import create_critic_agent
+
         self.critic = create_critic_agent()
 
     def evaluate_report(self, report_path: Path) -> QualityScore | None:
@@ -39,6 +41,7 @@ class ResearchEvaluator:
             return None
 
         from src.models.research import FindingCluster, Synthesis
+
         synthesis = Synthesis(
             question="Evaluating saved report",
             plan_id="",
@@ -47,6 +50,7 @@ class ResearchEvaluator:
         )
 
         from src.crew.agents.base import AgentContext
+
         ctx = AgentContext(question=synthesis.question)
         score = self.critic.execute(ctx, synthesis=synthesis, findings=[])
         return score
@@ -54,8 +58,9 @@ class ResearchEvaluator:
     def evaluate_from_state(self, state: Any) -> QualityScore:
         """Evaluate quality from a flow state."""
         from src.crew.agents.base import AgentContext
+
         ctx = AgentContext(question=state.question, iteration=state.iteration)
-        findings = state.get_all_findings() if hasattr(state, 'get_all_findings') else []
+        findings = state.get_all_findings() if hasattr(state, "get_all_findings") else []
         score = self.critic.execute(ctx, synthesis=state.synthesis, findings=findings)
         return score
 
@@ -86,7 +91,9 @@ class BatchEvaluator:
             "run_id": state.run_id,
             "iterations": state.iteration,
             "quality_score": score_to_dict(score) if score else None,
-            "total_findings": len(state.get_all_findings()) if hasattr(state, 'get_all_findings') else 0,
+            "total_findings": len(state.get_all_findings())
+            if hasattr(state, "get_all_findings")
+            else 0,
             "timestamp": datetime.now(UTC).isoformat(),
         }
         return result
@@ -101,11 +108,13 @@ class BatchEvaluator:
                 results.append(result)
             except Exception as e:
                 logger.error(f"Error evaluating '{question[:50]}': {e}")
-                results.append({
-                    "question": question,
-                    "error": str(e),
-                    "timestamp": datetime.now(UTC).isoformat(),
-                })
+                results.append(
+                    {
+                        "question": question,
+                        "error": str(e),
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    }
+                )
 
         summary = self._compute_summary(results)
         report = {
@@ -118,7 +127,9 @@ class BatchEvaluator:
             "results": results,
         }
 
-        output_path = self.output_dir / f"eval_{label}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
+        output_path = (
+            self.output_dir / f"eval_{label}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
+        )
         output_path.write_text(json.dumps(report, indent=2, default=str))
         logger.info(f"Evaluation suite saved to {output_path}")
         return output_path

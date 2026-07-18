@@ -1,24 +1,32 @@
 """
 Shared test fixtures and configuration.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List
-from uuid import uuid4
 
 import pytest
 
-from src.models.research import (
-    ResearchPlan, SubQuestion, ResearchFinding, Synthesis, FindingCluster,
-    EvidenceType, SubQuestionPriority, ResearchStrategy,
-)
 from src.models.quality import (
-    QualityScore, QualityGateResult, QualityDimension, HardGateFailure,
+    HardGateFailure,
+    QualityDimension,
+    QualityGateResult,
+    QualityScore,
 )
-
+from src.models.research import (
+    EvidenceType,
+    FindingCluster,
+    ResearchFinding,
+    ResearchPlan,
+    ResearchStrategy,
+    SubQuestion,
+    SubQuestionPriority,
+    Synthesis,
+)
 
 # ── Fixture directories ────────────────────────────────────────────
+
 
 @pytest.fixture
 def test_output_dir(tmp_path: Path) -> Path:
@@ -29,8 +37,9 @@ def test_output_dir(tmp_path: Path) -> Path:
 
 # ── Research Plan Fixtures ──────────────────────────────────────────
 
+
 @pytest.fixture
-def sample_sub_questions() -> List[SubQuestion]:
+def sample_sub_questions() -> list[SubQuestion]:
     return [
         SubQuestion(
             question="What are the main approaches to RAG?",
@@ -72,8 +81,9 @@ def sample_plan(sample_sub_questions) -> ResearchPlan:
 
 # ── Finding Fixtures ───────────────────────────────────────────────
 
+
 @pytest.fixture
-def sample_findings() -> List[ResearchFinding]:
+def sample_findings() -> list[ResearchFinding]:
     return [
         ResearchFinding(
             sub_question_id="sq_001",
@@ -116,6 +126,7 @@ def sample_findings() -> List[ResearchFinding]:
 
 # ── Synthesis Fixtures ─────────────────────────────────────────────
 
+
 @pytest.fixture
 def sample_synthesis(sample_findings) -> Synthesis:
     return Synthesis(
@@ -135,6 +146,7 @@ def sample_synthesis(sample_findings) -> Synthesis:
 
 
 # ── Quality Fixtures ───────────────────────────────────────────────
+
 
 @pytest.fixture
 def passing_quality_score() -> QualityScore:
@@ -162,7 +174,8 @@ def failing_quality_score() -> QualityScore:
         hard_gate_failures=[
             HardGateFailure(
                 dimension=QualityDimension.FACTUAL_ACCURACY,
-                score=5, threshold=6,
+                score=5,
+                threshold=6,
                 reason="Factual accuracy below threshold",
             ),
         ],
@@ -196,6 +209,7 @@ def failing_gate_result(failing_quality_score) -> QualityGateResult:
 
 # ── Config Fixtures ───────────────────────────────────────────────
 
+
 @pytest.fixture
 def mock_settings(tmp_path):
     """Settings object override for tests (env-var nesting does not bind).
@@ -205,6 +219,7 @@ def mock_settings(tmp_path):
             g.return_value = mock_settings
     """
     from src.config import Settings
+
     s = Settings(_env_file=None)
     s.storage.output_dir = tmp_path / "test_output"
     s.quality.threshold = 8.0
@@ -214,6 +229,7 @@ def mock_settings(tmp_path):
 
 
 # ── Helpers ────────────────────────────────────────────────────────
+
 
 def make_quality_score(**overrides) -> QualityScore:
     """Create a QualityScore with defaults."""

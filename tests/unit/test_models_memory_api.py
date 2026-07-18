@@ -1,17 +1,29 @@
 """
 Tests for memory models and API models.
 """
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from src.models.memory import (
-    MemoryEntry, Entity, Relation, SearchResult,
-    MemoryType, EntityType, RelationType,
-)
 from src.models.api import (
-    ResearchRequest, ResearchResponse, JobStatus, JobResult,
-    JobListResponse, HealthResponse, ErrorResponse, StreamEvent,
+    ErrorResponse,
+    HealthResponse,
+    JobListResponse,
+    JobResult,
+    JobStatus,
+    ResearchRequest,
+    ResearchResponse,
+    StreamEvent,
+)
+from src.models.memory import (
+    Entity,
+    EntityType,
+    MemoryEntry,
+    MemoryType,
+    Relation,
+    RelationType,
+    SearchResult,
 )
 
 
@@ -58,6 +70,7 @@ class TestAPIModels:
     def test_research_request_too_short(self):
         import pytest
         from pydantic import ValidationError
+
         with pytest.raises(ValidationError):
             ResearchRequest(question="Short")
 
@@ -66,28 +79,37 @@ class TestAPIModels:
         assert resp.job_id == "job_001"
 
     def test_job_status(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         js = JobStatus(
-            job_id="job_001", question="Test?", status="queued",
-            started_at=now, updated_at=now,
+            job_id="job_001",
+            question="Test?",
+            status="queued",
+            started_at=now,
+            updated_at=now,
         )
         assert js.status == "queued"
         assert js.progress == 0.0
 
     def test_job_result(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         jr = JobResult(
-            job_id="job_001", question="Test?",
-            duration_seconds=10.5, iterations=2,
-            created_at=now, completed_at=now,
+            job_id="job_001",
+            question="Test?",
+            duration_seconds=10.5,
+            iterations=2,
+            created_at=now,
+            completed_at=now,
         )
         assert jr.duration_seconds == 10.5
 
     def test_job_list_response(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         job = JobStatus(
-            job_id="job_001", question="Test?", status="completed",
-            started_at=now, updated_at=now,
+            job_id="job_001",
+            question="Test?",
+            status="completed",
+            started_at=now,
+            updated_at=now,
         )
         resp = JobListResponse(jobs=[job], total=1)
         assert resp.total == 1

@@ -1,6 +1,7 @@
 """
 Citation generation tool for formatting academic citations.
 """
+
 from __future__ import annotations
 
 import re
@@ -17,11 +18,19 @@ class CitationTool:
     def __init__(self):
         self._crossref_client = None
 
-    def format_apa(self, authors: list[str], year: int | None, title: str,
-                   journal: str | None = None, volume: str | None = None,
-                   issue: str | None = None, pages: str | None = None,
-                   doi: str | None = None, url: str | None = None,
-                   publisher: str | None = None) -> str:
+    def format_apa(
+        self,
+        authors: list[str],
+        year: int | None,
+        title: str,
+        journal: str | None = None,
+        volume: str | None = None,
+        issue: str | None = None,
+        pages: str | None = None,
+        doi: str | None = None,
+        url: str | None = None,
+        publisher: str | None = None,
+    ) -> str:
         """Format citation in APA style."""
         author_str = self._format_authors_apa(authors)
         year_str = f"({year})" if year else "(n.d.)"
@@ -53,9 +62,16 @@ class CitationTool:
 
         return " ".join(parts)
 
-    def format_mla(self, authors: list[str], year: int | None, title: str,
-                   journal: str | None = None, publisher: str | None = None,
-                   doi: str | None = None, url: str | None = None) -> str:
+    def format_mla(
+        self,
+        authors: list[str],
+        year: int | None,
+        title: str,
+        journal: str | None = None,
+        publisher: str | None = None,
+        doi: str | None = None,
+        url: str | None = None,
+    ) -> str:
         """Format citation in MLA style."""
         author_str = self._format_authors_mla(authors)
         title_str = title
@@ -69,18 +85,26 @@ class CitationTool:
             elif url:
                 parts.append(url)
             return " ".join(parts)
-        parts = [f'{author_str} *{title_str}*.']
+        parts = [f"{author_str} *{title_str}*."]
         if publisher:
             parts.append(f"{publisher},")
         if year:
             parts.append(f"{year}.")
         return " ".join(parts)
 
-    def format_chicago(self, authors: list[str], year: int | None, title: str,
-                       journal: str | None = None, volume: str | None = None,
-                       issue: str | None = None, pages: str | None = None,
-                       doi: str | None = None, url: str | None = None,
-                       publisher: str | None = None) -> str:
+    def format_chicago(
+        self,
+        authors: list[str],
+        year: int | None,
+        title: str,
+        journal: str | None = None,
+        volume: str | None = None,
+        issue: str | None = None,
+        pages: str | None = None,
+        doi: str | None = None,
+        url: str | None = None,
+        publisher: str | None = None,
+    ) -> str:
         """Format citation in Chicago style."""
         author_str = self._format_authors_chicago(authors)
         year_str = str(year) if year else "n.d."
@@ -117,12 +141,16 @@ class CitationTool:
         if len(authors) == 1:
             return f"({authors[0]}, {year})" if year else f"({authors[0]})"
         if len(authors) == 2:
-            return f"({authors[0]} & {authors[1]}, {year})" if year else f"({authors[0]} & {authors[1]})"
+            return (
+                f"({authors[0]} & {authors[1]}, {year})"
+                if year
+                else f"({authors[0]} & {authors[1]})"
+            )
         return f"({authors[0]} et al., {year})" if year else f"({authors[0]} et al.)"
 
     def extract_doi(self, text: str) -> str | None:
         """Extract DOI from text."""
-        doi_pattern = r'(10\.\d{4,}/[-._;()/:A-Za-z0-9]+)'
+        doi_pattern = r"(10\.\d{4,}/[-._;()/:A-Za-z0-9]+)"
         match = re.search(doi_pattern, text)
         return match.group(1) if match else None
 
@@ -130,8 +158,11 @@ class CitationTool:
         """Resolve a DOI to get citation metadata via Crossref."""
         try:
             import requests
+
             url = f"https://api.crossref.org/works/{doi}"
-            response = requests.get(url, headers={"User-Agent": "MultiAgentResearchLab/1.0"}, timeout=15)
+            response = requests.get(
+                url, headers={"User-Agent": "MultiAgentResearchLab/1.0"}, timeout=15
+            )
             response.raise_for_status()
             data = response.json()
             message = data.get("message", {})
@@ -148,8 +179,10 @@ class CitationTool:
                 "title": message.get("title", [""])[0] if message.get("title") else "",
                 "authors": authors,
                 "year": message.get("published-print", {}).get("date-parts", [[None]])[0][0]
-                        or message.get("published-online", {}).get("date-parts", [[None]])[0][0],
-                "journal": message.get("container-title", [""])[0] if message.get("container-title") else "",
+                or message.get("published-online", {}).get("date-parts", [[None]])[0][0],
+                "journal": message.get("container-title", [""])[0]
+                if message.get("container-title")
+                else "",
                 "publisher": message.get("publisher", ""),
                 "volume": message.get("volume", ""),
                 "issue": message.get("issue", ""),

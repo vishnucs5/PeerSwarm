@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 from typing import Any
 
 from groq import Groq
 
+from src.utils.logger import get_logger
 from src.utils.resilience import (
     RetryConfig,
     groq_circuit_breaker,
     retry_with_backoff,
 )
-from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 

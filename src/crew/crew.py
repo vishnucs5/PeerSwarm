@@ -1,6 +1,7 @@
 """
 Crew builder — assembles agents and tasks into a CrewAI Crew.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -12,6 +13,7 @@ logger = get_logger(__name__)
 
 try:
     from crewai import Crew, Process
+
     CREWAI_AVAILABLE = True
 except ImportError:
     Crew = object
@@ -71,6 +73,7 @@ class ResearchCrew:
             return None
 
         from src.crew.agents.base import CrewAIAgentWrapper
+
         wrapper = CrewAIAgentWrapper(python_agent)
         return wrapper.to_crewai_agent()
 

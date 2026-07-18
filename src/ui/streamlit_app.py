@@ -2,6 +2,7 @@
 Multi-Agent Research Lab — Streamlit dashboard.
 Swiss Modernism 2.0 design language.
 """
+
 from __future__ import annotations
 
 import os
@@ -12,9 +13,9 @@ load_dotenv()
 
 import streamlit as st
 
+from src.ui.components import history, job_status, new_research, results, system_health
 from src.ui.components.api_client import api_get, set_api_base
 from src.ui.components.styling import inject_css
-from src.ui.components import new_research, job_status, results, history, system_health
 
 # ── Page Config ─────────────────────────────────────────────────────
 
@@ -37,7 +38,8 @@ PAGES = ["New Research", "Job Status", "Results", "History", "System Health"]
 # ── Sidebar ────────────────────────────────────────────────────────
 
 with st.sidebar:
-    st.markdown("""
+    st.markdown(
+        """
     <div style="padding: var(--space-4) 0; text-align: center;">
         <div style="font-size: 2rem; margin-bottom: var(--space-2);">🔬</div>
         <div style="font-family: var(--font-heading); font-size: var(--text-lg); font-weight: 600;">
@@ -47,7 +49,9 @@ with st.sidebar:
             v0.1.0
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     st.markdown('<hr class="divider">', unsafe_allow_html=True)
 
@@ -83,17 +87,21 @@ with st.sidebar:
     with col2:
         if st.button("🗄️ DB Health", use_container_width=True):
             from src.ui.components.api_client import supabase_health
+
             ok = supabase_health()
             if ok:
                 st.success("Supabase: connected")
             else:
                 st.error("Supabase: unreachable")
 
-    st.markdown("""
+    st.markdown(
+        """
     <div style="margin-top: var(--space-6); padding: var(--space-3); font-size: var(--text-xs); color: var(--color-muted-foreground); text-align: center;">
         7 agents · Quality loops · Hybrid memory
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 # ── Pages ───────────────────────────────────────────────────────────
 

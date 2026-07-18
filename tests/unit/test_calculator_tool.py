@@ -1,6 +1,7 @@
 """
 Tests for safe calculator tool.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -41,10 +42,12 @@ class TestCalculatorTool:
 
     def test_pi_constant(self):
         import math
+
         assert self.calc.evaluate("pi") == pytest.approx(math.pi)
 
     def test_e_constant(self):
         import math
+
         assert self.calc.evaluate("e") == pytest.approx(math.e)
 
     def test_sqrt_function(self):
@@ -134,6 +137,7 @@ class TestCalculatorTool:
 
 def test_get_calculator_tool():
     from src.tools.calculator import get_calculator_tool
+
     tool = get_calculator_tool()
     assert tool is not None
     assert isinstance(tool, CalculatorTool)

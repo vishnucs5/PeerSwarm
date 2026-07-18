@@ -1,6 +1,7 @@
 """
 Quality evaluation models for the Critic agent and quality gates.
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -13,6 +14,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 class QualityDimension(str, Enum):
     """Quality evaluation dimensions."""
+
     FACTUAL_ACCURACY = "factual_accuracy"
     SOURCE_QUALITY = "source_quality"
     LOGICAL_COHERENCE = "logical_coherence"
@@ -22,6 +24,7 @@ class QualityDimension(str, Enum):
 
 class HardGateFailure(BaseModel):
     """A hard gate failure in quality evaluation."""
+
     dimension: QualityDimension
     score: int = Field(ge=0, le=10)
     threshold: int = Field(ge=0, le=10)
@@ -31,6 +34,7 @@ class HardGateFailure(BaseModel):
 
 class QualityScore(BaseModel):
     """Quality evaluation score from Critic agent."""
+
     id: str = Field(default_factory=lambda: f"qs_{str(uuid4())[:8]}")
 
     # Dimension scores (0-10)
@@ -79,8 +83,13 @@ class QualityScore(BaseModel):
     @model_validator(mode="after")
     def compute_overall(self) -> QualityScore:
         if self.overall == 0.0:
-            dims = [self.factual_accuracy, self.source_quality,
-                    self.logical_coherence, self.completeness, self.clarity]
+            dims = [
+                self.factual_accuracy,
+                self.source_quality,
+                self.logical_coherence,
+                self.completeness,
+                self.clarity,
+            ]
             self.overall = round(sum(dims) / len(dims), 1)
         return self
 
@@ -99,12 +108,14 @@ class QualityScore(BaseModel):
             ("clarity", data.get("clarity", 0)),
         ]:
             if score < threshold:
-                failures.append(HardGateFailure(
-                    dimension=QualityDimension(dim_name),
-                    score=score,
-                    threshold=threshold,
-                    reason=f"{dim_name.replace('_', ' ').title()} score {score} below hard gate threshold {threshold}"
-                ))
+                failures.append(
+                    HardGateFailure(
+                        dimension=QualityDimension(dim_name),
+                        score=score,
+                        threshold=threshold,
+                        reason=f"{dim_name.replace('_', ' ').title()} score {score} below hard gate threshold {threshold}",
+                    )
+                )
         return failures
 
     @field_validator("revision_priority", mode="after")
@@ -130,6 +141,7 @@ class QualityScore(BaseModel):
 
 class RevisionDirective(BaseModel):
     """Directive for targeted revision."""
+
     id: str = Field(default_factory=lambda: f"rev_{str(uuid4())[:8]}")
     target_agent: Literal["researcher_a", "researcher_b", "researcher_c", "analyst", "writer"]
     specific_issues: list[str] = Field(default_factory=list)
@@ -142,6 +154,7 @@ class RevisionDirective(BaseModel):
 
 class QualityGateResult(BaseModel):
     """Result of quality gate evaluation."""
+
     passed: bool
     score: QualityScore
     directive: RevisionDirective | None = None

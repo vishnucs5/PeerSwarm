@@ -1,6 +1,7 @@
 """
 Report export utilities (Markdown, PDF).
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -8,6 +9,7 @@ from pathlib import Path
 try:
     from weasyprint import CSS, HTML
     from weasyprint.text.fonts import FontConfiguration
+
     HAS_WEASYPRINT = True
 except (ImportError, OSError):
     HAS_WEASYPRINT = False
@@ -35,45 +37,55 @@ def export_markdown(report: FinalReport, output_path: Path | None = None) -> Pat
     ]
 
     if report.key_takeaways:
-        lines.extend([
-            "## Key Takeaways",
-            "",
-        ])
+        lines.extend(
+            [
+                "## Key Takeaways",
+                "",
+            ]
+        )
         for i, takeaway in enumerate(report.key_takeaways, 1):
             lines.append(f"{i}. {takeaway}")
         lines.append("")
 
     for section in report.sections:
-        lines.extend([
-            f"## {section.title}",
-            "",
-            section.content,
-            "",
-        ])
+        lines.extend(
+            [
+                f"## {section.title}",
+                "",
+                section.content,
+                "",
+            ]
+        )
 
     if report.limitations:
-        lines.extend([
-            "## Limitations",
-            "",
-        ])
+        lines.extend(
+            [
+                "## Limitations",
+                "",
+            ]
+        )
         for limitation in report.limitations:
             lines.append(f"- {limitation}")
         lines.append("")
 
     if report.future_work:
-        lines.extend([
-            "## Future Work",
-            "",
-        ])
+        lines.extend(
+            [
+                "## Future Work",
+                "",
+            ]
+        )
         for item in report.future_work:
             lines.append(f"- {item}")
         lines.append("")
 
     if report.references:
-        lines.extend([
-            "## References",
-            "",
-        ])
+        lines.extend(
+            [
+                "## References",
+                "",
+            ]
+        )
         for i, ref in enumerate(report.references, 1):
             lines.append(f"{i}. {ref}")
         lines.append("")
@@ -93,7 +105,9 @@ def export_markdown(report: FinalReport, output_path: Path | None = None) -> Pat
 def export_pdf(report: FinalReport, output_path: Path | None = None) -> Path:
     """Export report to PDF using WeasyPrint."""
     if not HAS_WEASYPRINT:
-        raise ImportError("WeasyPrint is not installed or missing system dependencies (GTK/gobject). PDF export is unavailable.")
+        raise ImportError(
+            "WeasyPrint is not installed or missing system dependencies (GTK/gobject). PDF export is unavailable."
+        )
 
     # Generate HTML first
     html = generate_html(report)
@@ -104,7 +118,8 @@ def export_pdf(report: FinalReport, output_path: Path | None = None) -> Path:
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     # CSS for styling
-    css = CSS(string="""
+    css = CSS(
+        string="""
         @page {
             margin: 2cm;
             @bottom-center {
@@ -129,7 +144,8 @@ def export_pdf(report: FinalReport, output_path: Path | None = None) -> Path:
         .references li { margin-bottom: 0.3rem; }
         pre { background: #f5f5f5; padding: 1rem; overflow-x: auto; }
         code { background: #f0f0f0; padding: 0.2rem 0.4rem; border-radius: 3px; }
-    """)
+    """
+    )
 
     # Font configuration
     font_config = FontConfiguration()
@@ -163,10 +179,12 @@ def generate_html(report: FinalReport) -> str:
         "</div>",
     ]
 
-    html_parts.extend([
-        "<h2>Executive Summary</h2>",
-        f"<p>{report.executive_summary}</p>",
-    ])
+    html_parts.extend(
+        [
+            "<h2>Executive Summary</h2>",
+            f"<p>{report.executive_summary}</p>",
+        ]
+    )
 
     if report.key_takeaways:
         html_parts.append("<h2>Key Takeaways</h2>")
@@ -176,12 +194,14 @@ def generate_html(report: FinalReport) -> str:
         html_parts.append("</ul>")
 
     for section in report.sections:
-        html_parts.extend([
-            "<div class='section'>",
-            f"<h2>{section.title}</h2>",
-            f"<div>{section.content}</div>",
-            "</div>",
-        ])
+        html_parts.extend(
+            [
+                "<div class='section'>",
+                f"<h2>{section.title}</h2>",
+                f"<div>{section.content}</div>",
+                "</div>",
+            ]
+        )
 
     if report.limitations:
         html_parts.append("<h2>Limitations</h2>")

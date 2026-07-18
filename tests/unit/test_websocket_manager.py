@@ -1,15 +1,18 @@
 """
 Tests for the WebSocket connection manager.
 """
+
 from __future__ import annotations
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 
 @pytest.fixture
 def manager():
     from src.api.websocket_manager import ConnectionManager
+
     return ConnectionManager()
 
 

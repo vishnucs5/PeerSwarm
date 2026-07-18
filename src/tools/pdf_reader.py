@@ -1,6 +1,7 @@
 """
 PDF reader tool for extracting text from PDF documents.
 """
+
 from __future__ import annotations
 
 from io import BytesIO
@@ -30,7 +31,7 @@ class PDFReaderTool:
         try:
             text = self._extract_from_path(path)
             if text:
-                text = text[:self.max_chars]
+                text = text[: self.max_chars]
             logger.info(f"Read PDF {path.name}: {len(text)} chars")
             return text
         except Exception as e:
@@ -45,7 +46,7 @@ class PDFReaderTool:
             content = response.content
             text = self._extract_from_bytes(content, url)
             if text:
-                text = text[:self.max_chars]
+                text = text[: self.max_chars]
             logger.info(f"Read PDF from {url[:80]}: {len(text)} chars")
             return text
         except Exception as e:
@@ -57,7 +58,7 @@ class PDFReaderTool:
         try:
             text = self._extract_from_bytes(data, source)
             if text:
-                text = text[:self.max_chars]
+                text = text[: self.max_chars]
             return text
         except Exception as e:
             logger.error(f"Error reading PDF bytes: {e}")
@@ -75,10 +76,9 @@ class PDFReaderTool:
                         text_parts.append(page.get_text())
                     doc.close()
                     return "\n".join(text_parts)
-                else:
-                    with doc as pdf:
-                        text_parts = [page.extract_text() or "" for page in pdf.pages]
-                    return "\n".join(text_parts)
+                with doc as pdf:
+                    text_parts = [page.extract_text() or "" for page in pdf.pages]
+                return "\n".join(text_parts)
             except ImportError:
                 continue
 
@@ -92,9 +92,11 @@ class PDFReaderTool:
     def _extract_from_bytes(self, data: bytes, source: str) -> str | None:
         """Extract text from PDF bytes."""
         return self._extract_with_backends(
-            lambda lib: lib.open(stream=data, filetype="pdf")
-            if lib.__name__ == "fitz"
-            else lib.open(BytesIO(data))
+            lambda lib: (
+                lib.open(stream=data, filetype="pdf")
+                if lib.__name__ == "fitz"
+                else lib.open(BytesIO(data))
+            )
         )
 
     def extract_metadata(self, path: str | Path) -> dict[str, Any]:
@@ -105,6 +107,7 @@ class PDFReaderTool:
 
         try:
             import fitz
+
             doc = fitz.open(str(path))
             metadata = doc.metadata or {}
             metadata["pages"] = len(doc)

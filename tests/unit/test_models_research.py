@@ -1,17 +1,23 @@
 """
 Tests for research domain models.
 """
-from __future__ import annotations
 
-from uuid import UUID
+from __future__ import annotations
 
 import pytest
 from pydantic import ValidationError
 
 from src.models.research import (
-    SubQuestion, ResearchPlan, ResearchFinding, FindingCluster,
-    Synthesis, FinalReport, ReportSection, SubQuestionPriority,
-    ResearchStrategy, EvidenceType,
+    EvidenceType,
+    FinalReport,
+    FindingCluster,
+    ReportSection,
+    ResearchFinding,
+    ResearchPlan,
+    ResearchStrategy,
+    SubQuestion,
+    SubQuestionPriority,
+    Synthesis,
 )
 
 
@@ -65,10 +71,7 @@ class TestResearchPlan:
         with pytest.raises(ValidationError):
             ResearchPlan(
                 original_question="Test?",
-                sub_questions=[
-                    SubQuestion(question=f"Q{i}?", rationale="R")
-                    for i in range(7)
-                ],
+                sub_questions=[SubQuestion(question=f"Q{i}?", rationale="R") for i in range(7)],
             )
 
     def test_defaults(self):

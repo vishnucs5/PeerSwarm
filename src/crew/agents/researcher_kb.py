@@ -1,6 +1,7 @@
 """
 Knowledge base researcher agent - retrieves prior research and internal knowledge.
 """
+
 from __future__ import annotations
 
 from src.config import get_model_for_agent
@@ -36,6 +37,7 @@ existing knowledge and identify what has already been established.""",
         logger.info(f"KB researching: {sub_question[:60]}...")
 
         from src.tools.knowledge_base import get_kb_tool
+
         kb = get_kb_tool()
 
         findings = []

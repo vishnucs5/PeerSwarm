@@ -27,7 +27,8 @@ def _status_badge_html(status: str) -> str:
 
 
 def render():
-    st.markdown("""
+    st.markdown(
+        """
     <div class="toolbar">
         <div class="toolbar-left">
             <span style="font-size: 1.5rem;">📜</span>
@@ -35,7 +36,9 @@ def render():
         </div>
         <div class="toolbar-right">
             <div class="filter-group">
-                <label class="form-label" style="margin-bottom: 0; white-space: nowrap;">Filter:</label>""", unsafe_allow_html=True)
+                <label class="form-label" style="margin-bottom: 0; white-space: nowrap;">Filter:</label>""",
+        unsafe_allow_html=True,
+    )
 
     status_filter = st.selectbox(
         "Status",
@@ -44,12 +47,17 @@ def render():
         key="history_filter",
     )
 
-    st.markdown("""
+    st.markdown(
+        """
             </div>
         </div>
-    </div>""", unsafe_allow_html=True)
+    </div>""",
+        unsafe_allow_html=True,
+    )
 
-    jobs = api_get(f"/research?limit=50{'' if status_filter == 'all' else f'&status={status_filter}'}")
+    jobs = api_get(
+        f"/research?limit=50{'' if status_filter == 'all' else f'&status={status_filter}'}"
+    )
 
     if not jobs or not jobs.get("jobs"):
         empty_state("📜", "No research history found", "Start a new research job to see it here!")
@@ -62,30 +70,33 @@ def render():
         qs = job.get("quality_score", {})
         score = f"{qs['overall']}/10" if qs else "—"
 
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div class="card" style="margin-bottom: var(--space-3); cursor: pointer;">
             <div style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);">
                 <div style="flex: 1; min-width: 0;">
                     <div style="font-weight: 600; font-size: var(--text-sm); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        {job.get('question', 'Untitled')[:120]}
+                        {job.get("question", "Untitled")[:120]}
                     </div>
                     <div style="font-size: var(--text-xs); color: var(--color-muted-foreground);">
-                        ID: {job['job_id']} &middot; Updated: {job.get('updated_at', '—')}
+                        ID: {job["job_id"]} &middot; Updated: {job.get("updated_at", "—")}
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: var(--space-4); flex-shrink: 0;">
                     <div style="text-align: center;">
                         <div style="font-size: var(--text-xs); color: var(--color-muted-foreground); margin-bottom: 2px;">Status</div>
-                        {_status_badge_html(job['status'])}
+                        {_status_badge_html(job["status"])}
                     </div>
                     <div style="text-align: center;">
                         <div style="font-size: var(--text-xs); color: var(--color-muted-foreground); margin-bottom: 2px;">Iteration</div>
-                        <div style="font-weight: 600; font-size: var(--text-sm);">{job['iteration']}/{job['max_iterations']}</div>
+                        <div style="font-weight: 600; font-size: var(--text-sm);">{job["iteration"]}/{job["max_iterations"]}</div>
                     </div>
                     <div style="text-align: center;">
                         <div style="font-size: var(--text-xs); color: var(--color-muted-foreground); margin-bottom: 2px;">Score</div>
                         <div style="font-weight: 600; font-size: var(--text-sm);">{score}</div>
-                    </div>""", unsafe_allow_html=True)
+                    </div>""",
+            unsafe_allow_html=True,
+        )
 
         col_v, col_d = st.columns([1, 1])
         with col_v:

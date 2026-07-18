@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import uvicorn
@@ -12,7 +12,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.backend.groq_client import generate_research
 from src.backend.models import (
     HealthResponse,
-    JobStatus,
     QualityDimensions,
     QualityScore,
     ResearchRequest,
@@ -43,7 +42,7 @@ _start_time = time.time()
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 @app.get("/api/v1/health")
@@ -75,11 +74,13 @@ async def create_research(req: ResearchRequest) -> dict[str, Any]:
 
         sections = []
         for s in data.get("sections", []):
-            sections.append(ResearchSection(
-                title=s.get("title", "Section"),
-                content=s.get("content", ""),
-                citations=s.get("citations", []),
-            ))
+            sections.append(
+                ResearchSection(
+                    title=s.get("title", "Section"),
+                    content=s.get("content", ""),
+                    citations=s.get("citations", []),
+                )
+            )
 
         qs = QualityScore(
             overall=round(7.5 + (hash(job["id"]) % 25) / 10, 1),
@@ -92,25 +93,31 @@ async def create_research(req: ResearchRequest) -> dict[str, Any]:
             ),
         )
 
-        insert_result(job["id"], {
-            "question": req.question.strip(),
-            "executive_summary": data.get("executive_summary", ""),
-            "key_takeaways": data.get("key_takeaways", []),
-            "references": data.get("references", []),
-            "sections": [s.model_dump() for s in sections],
-            "report_markdown": data.get("report_markdown", ""),
-            "report": data.get("report", {}),
-            "quality_score": qs.model_dump(),
-            "duration_seconds": round(elapsed, 1),
-            "iterations": req.max_iterations,
-        })
+        insert_result(
+            job["id"],
+            {
+                "question": req.question.strip(),
+                "executive_summary": data.get("executive_summary", ""),
+                "key_takeaways": data.get("key_takeaways", []),
+                "references": data.get("references", []),
+                "sections": [s.model_dump() for s in sections],
+                "report_markdown": data.get("report_markdown", ""),
+                "report": data.get("report", {}),
+                "quality_score": qs.model_dump(),
+                "duration_seconds": round(elapsed, 1),
+                "iterations": req.max_iterations,
+            },
+        )
 
-        update_job(job["id"], {
-            "status": "completed",
-            "iteration": req.max_iterations,
-            "quality_score": qs.model_dump(),
-            "updated_at": _now(),
-        })
+        update_job(
+            job["id"],
+            {
+                "status": "completed",
+                "iteration": req.max_iterations,
+                "quality_score": qs.model_dump(),
+                "updated_at": _now(),
+            },
+        )
 
         return {
             "job_id": job["id"],
@@ -119,12 +126,15 @@ async def create_research(req: ResearchRequest) -> dict[str, Any]:
         }
 
     except Exception as e:
-        update_job(job["id"], {
-            "status": "failed",
-            "error": str(e),
-            "updated_at": _now(),
-        })
-        raise HTTPException(status_code=500, detail=str(e))
+        update_job(
+            job["id"],
+            {
+                "status": "failed",
+                "error": str(e),
+                "updated_at": _now(),
+            },
+        )
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.get("/api/v1/research/{job_id}")
@@ -202,4 +212,4 @@ def list_all_jobs(
 
 
 if __name__ == "__main__":
-    uvicorn.run("src.backend.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("src.backend.main:app", host="0.0.0.0", port=8000, reload=True)  # nosec B104

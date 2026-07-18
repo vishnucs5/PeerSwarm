@@ -1,13 +1,14 @@
 """
 Standardized error handling with RFC 7807 Problem Details support.
 """
+
 from __future__ import annotations
 
 from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from pydantic import ValidationError
+from pydantic import ValidationError as PydanticValidationError
 
 from src.utils.logger import get_logger
 
@@ -129,7 +130,7 @@ class ErrorResponse:
                 content["errors"] = exc.details
             return JSONResponse(status_code=exc.status_code, content=content)
 
-        if isinstance(exc, ValidationError):
+        if isinstance(exc, PydanticValidationError):
             return JSONResponse(
                 status_code=422,
                 content={
@@ -160,8 +161,10 @@ def add_error_handlers(app: FastAPI) -> None:
     async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
         return ErrorResponse.from_exception(exc)
 
-    @app.exception_handler(ValidationError)
-    async def validation_error_handler(request: Request, exc: ValidationError) -> JSONResponse:
+    @app.exception_handler(PydanticValidationError)
+    async def validation_error_handler(
+        request: Request, exc: PydanticValidationError
+    ) -> JSONResponse:
         return ErrorResponse.from_exception(exc)
 
     @app.exception_handler(Exception)

@@ -1,6 +1,7 @@
 """
 SQLite storage for research run history.
 """
+
 from __future__ import annotations
 
 from contextlib import contextmanager
@@ -33,6 +34,7 @@ Base = declarative_base()
 
 class RunRecordTable(Base):
     """SQLAlchemy model for run records."""
+
     __tablename__ = "run_records"
 
     id = Column(String(24), primary_key=True)
@@ -49,7 +51,12 @@ class RunRecordTable(Base):
     domain = Column(String(128), nullable=True)
     created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
     completed_at = Column(DateTime, nullable=True)
-    updated_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+    )
 
     __table_args__ = (
         Index("ix_run_records_status", "status"),
@@ -227,27 +234,48 @@ class RunHistory:
         try:
             with self.session() as session:
                 total = session.query(func.count(RunRecordTable.id)).scalar() or 0
-                completed = session.query(func.count(RunRecordTable.id)).filter(
-                    RunRecordTable.status == "completed"
-                ).scalar() or 0
-                failed = session.query(func.count(RunRecordTable.id)).filter(
-                    RunRecordTable.status == "failed"
-                ).scalar() or 0
+                completed = (
+                    session.query(func.count(RunRecordTable.id))
+                    .filter(RunRecordTable.status == "completed")
+                    .scalar()
+                    or 0
+                )
+                failed = (
+                    session.query(func.count(RunRecordTable.id))
+                    .filter(RunRecordTable.status == "failed")
+                    .scalar()
+                    or 0
+                )
 
-                avg_duration = session.query(func.avg(RunRecordTable.duration_seconds)).filter(
-                    RunRecordTable.status == "completed"
-                ).scalar() or 0
+                avg_duration = (
+                    session.query(func.avg(RunRecordTable.duration_seconds))
+                    .filter(RunRecordTable.status == "completed")
+                    .scalar()
+                    or 0
+                )
 
-                avg_iterations = session.query(func.avg(RunRecordTable.iterations)).filter(
-                    RunRecordTable.status == "completed"
-                ).scalar() or 0
+                avg_iterations = (
+                    session.query(func.avg(RunRecordTable.iterations))
+                    .filter(RunRecordTable.status == "completed")
+                    .scalar()
+                    or 0
+                )
 
-                avg_quality = session.query(func.avg(
-                    func.cast(func.json_extract(RunRecordTable.quality_score, "$.overall"), Float)
-                )).filter(
-                    RunRecordTable.status == "completed",
-                    RunRecordTable.quality_score.isnot(None),
-                ).scalar() or 0
+                avg_quality = (
+                    session.query(
+                        func.avg(
+                            func.cast(
+                                func.json_extract(RunRecordTable.quality_score, "$.overall"), Float
+                            )
+                        )
+                    )
+                    .filter(
+                        RunRecordTable.status == "completed",
+                        RunRecordTable.quality_score.isnot(None),
+                    )
+                    .scalar()
+                    or 0
+                )
 
                 return {
                     "total_runs": total,
@@ -266,9 +294,12 @@ class RunHistory:
         """Get all unique domains."""
         try:
             with self.session() as session:
-                result = session.query(RunRecordTable.domain).filter(
-                    RunRecordTable.domain.isnot(None)
-                ).distinct().all()
+                result = (
+                    session.query(RunRecordTable.domain)
+                    .filter(RunRecordTable.domain.isnot(None))
+                    .distinct()
+                    .all()
+                )
                 return [r[0] for r in result if r[0]]
         except Exception as e:
             logger.error(f"Error getting domains: {e}")

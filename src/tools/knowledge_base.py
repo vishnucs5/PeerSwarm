@@ -1,6 +1,7 @@
 """
 Knowledge base tools for RAG operations (search, store, entity management).
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -20,16 +21,22 @@ class KnowledgeBaseTool:
         self.knowledge_graph = get_knowledge_graph()
         self.history = get_run_history()
 
-    def search(self, query: str, top_k: int = 5, filters: dict[str, Any] | None = None) -> list[SearchResult]:
+    def search(
+        self, query: str, top_k: int = 5, filters: dict[str, Any] | None = None
+    ) -> list[SearchResult]:
         """Search the knowledge base for relevant entries."""
         search_query = SearchQuery(query=query, top_k=top_k, filters=filters or {})
         response = self.vector_store.search(search_query)
         return response.results
 
-    def store(self, content: str, metadata: dict[str, Any],
-              memory_type: MemoryType = MemoryType.RESEARCH_FINDING,
-              run_id: str | None = None,
-              tags: list[str] | None = None) -> str | None:
+    def store(
+        self,
+        content: str,
+        metadata: dict[str, Any],
+        memory_type: MemoryType = MemoryType.RESEARCH_FINDING,
+        run_id: str | None = None,
+        tags: list[str] | None = None,
+    ) -> str | None:
         """Store content in the knowledge base."""
         entry = MemoryEntry(
             content=content,
@@ -75,8 +82,9 @@ class KnowledgeBaseTool:
         response = self.vector_store.search(search_query)
         return response.results
 
-    def get_entities(self, query: str, entity_types: list[str] | None = None,
-                     limit: int = 10) -> list[Entity]:
+    def get_entities(
+        self, query: str, entity_types: list[str] | None = None, limit: int = 10
+    ) -> list[Entity]:
         """Search entities in knowledge graph."""
         return self.knowledge_graph.search_entities(query, entity_types, limit)
 
@@ -84,13 +92,15 @@ class KnowledgeBaseTool:
         """Store entities in knowledge graph."""
         kg_entities = []
         for e in entities:
-            kg_entities.append(Entity(
-                name=e["name"],
-                type=e.get("type", "concept"),
-                description=e.get("description", ""),
-                source_run_id=e.get("source_run_id", ""),
-                confidence=e.get("confidence", 1.0),
-            ))
+            kg_entities.append(
+                Entity(
+                    name=e["name"],
+                    type=e.get("type", "concept"),
+                    description=e.get("description", ""),
+                    source_run_id=e.get("source_run_id", ""),
+                    confidence=e.get("confidence", 1.0),
+                )
+            )
         return self.knowledge_graph.upsert_entities(kg_entities)
 
     def get_entity_relations(self, entity_id: str) -> list[Relation]:
@@ -103,14 +113,16 @@ class KnowledgeBaseTool:
         results = []
         for run in runs:
             if query.lower() in run.question.lower():
-                results.append({
-                    "id": run.id,
-                    "question": run.question,
-                    "status": run.status,
-                    "created_at": run.created_at.isoformat() if run.created_at else None,
-                    "quality_score": run.quality_score,
-                    "iterations": run.iterations,
-                })
+                results.append(
+                    {
+                        "id": run.id,
+                        "question": run.question,
+                        "status": run.status,
+                        "created_at": run.created_at.isoformat() if run.created_at else None,
+                        "quality_score": run.quality_score,
+                        "iterations": run.iterations,
+                    }
+                )
         return results
 
     def get_run(self, run_id: str) -> dict[str, Any] | None:

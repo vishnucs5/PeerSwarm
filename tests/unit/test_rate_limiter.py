@@ -1,12 +1,13 @@
 """
 Tests for the sliding-window rate limiter.
 """
+
 from __future__ import annotations
 
 import time
+from unittest.mock import MagicMock
 
 import pytest
-from unittest.mock import MagicMock
 
 from src.api.rate_limiter import SlidingWindowRateLimiter
 

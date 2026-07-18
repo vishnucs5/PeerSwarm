@@ -1,6 +1,7 @@
 """
 API request/response models.
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -11,6 +12,7 @@ from pydantic import BaseModel, Field, field_validator
 
 class ResearchRequest(BaseModel):
     """Request to start a research job."""
+
     question: str = Field(min_length=10, max_length=2000)
     context: str | None = None
     max_iterations: int | None = Field(default=None, ge=1, le=5)
@@ -30,6 +32,7 @@ class ResearchRequest(BaseModel):
 
 class ResearchResponse(BaseModel):
     """Response when starting a research job."""
+
     job_id: str
     status: Literal["queued", "running"]
     message: str
@@ -38,11 +41,20 @@ class ResearchResponse(BaseModel):
 
 class JobStatus(BaseModel):
     """Current status of a research job."""
+
     job_id: str
     question: str
     status: Literal[
-        "queued", "planning", "researching", "analyzing",
-        "evaluating", "revising", "writing", "completed", "failed", "cancelled"
+        "queued",
+        "planning",
+        "researching",
+        "analyzing",
+        "evaluating",
+        "revising",
+        "writing",
+        "completed",
+        "failed",
+        "cancelled",
     ]
     current_step: str = ""
     progress: float = Field(default=0.0, ge=0, le=1)
@@ -60,6 +72,7 @@ class JobStatus(BaseModel):
 
 class JobResult(BaseModel):
     """Final result of a completed research job."""
+
     job_id: str
     question: str
     report: dict[str, Any] | None = None
@@ -78,6 +91,7 @@ class JobResult(BaseModel):
 
 class JobListResponse(BaseModel):
     """Response for listing jobs."""
+
     jobs: list[JobStatus]
     total: int
     page: int = 1
@@ -86,6 +100,7 @@ class JobListResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     """Health check response."""
+
     status: Literal["healthy", "degraded", "unhealthy"]
     version: str = "0.1.0"
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
@@ -95,6 +110,7 @@ class HealthResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Error response."""
+
     error: str
     detail: str | None = None
     code: str | None = None
@@ -103,6 +119,7 @@ class ErrorResponse(BaseModel):
 
 class StreamEvent(BaseModel):
     """Server-sent event for streaming updates."""
+
     event: str
     data: dict[str, Any]
     job_id: str | None = None

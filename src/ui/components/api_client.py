@@ -6,6 +6,7 @@ from typing import Any
 
 import httpx
 import streamlit as st
+
 from supabase import Client, create_client
 
 

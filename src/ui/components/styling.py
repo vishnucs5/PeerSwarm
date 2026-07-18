@@ -1,4 +1,5 @@
 from pathlib import Path
+
 import streamlit as st
 
 
@@ -13,13 +14,16 @@ def inject_css():
 
 
 def hero(icon: str, title: str, subtitle: str):
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div class="hero fade-in">
         <div class="hero-icon">{icon}</div>
         <h1>{title}</h1>
         <p>{subtitle}</p>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def metric_card(value: str, label: str, delta: str | None = None):
@@ -29,13 +33,16 @@ def metric_card(value: str, label: str, delta: str | None = None):
         direction = "up" if not delta.startswith("-") else "down"
         delta_class = direction
         delta_html = f'<div class="metric-delta {direction}">{delta}</div>'
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div class="metric-card fade-in">
         <div class="metric-value">{value}</div>
         <div class="metric-label">{label}</div>
         {delta_html}
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def badge(text: str, variant: str = "neutral"):
@@ -53,13 +60,17 @@ def card(title: str | None = None, key: str | None = None):
             with container:
                 html_parts = ['<div class="card">']
                 if title:
-                    html_parts.append(f'<div class="card-header"><span class="card-title">{title}</span></div>')
+                    html_parts.append(
+                        f'<div class="card-header"><span class="card-title">{title}</span></div>'
+                    )
                 html_parts.append('<div class="card-body">')
                 st.markdown("".join(html_parts), unsafe_allow_html=True)
                 content_func(*args, **kwargs)
-                st.markdown('</div></div>', unsafe_allow_html=True)
+                st.markdown("</div></div>", unsafe_allow_html=True)
             return container
+
         return wrapper
+
     return decorator
 
 
@@ -72,13 +83,16 @@ def divider():
 
 
 def empty_state(icon: str, text: str, hint: str = ""):
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div class="empty-state">
         <div class="empty-state-icon">{icon}</div>
         <div class="empty-state-text">{text}</div>
         <div class="empty-state-hint">{hint}</div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def alert(message: str, variant: str = "info"):

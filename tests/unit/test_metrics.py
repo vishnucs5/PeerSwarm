@@ -1,9 +1,8 @@
 """
 Tests for Prometheus metrics.
 """
-from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from __future__ import annotations
 
 import pytest
 from prometheus_client import REGISTRY
@@ -13,7 +12,6 @@ from src.utils.metrics import (
     DB_OPERATIONS,
     RATE_LIMIT_HITS,
     REQUEST_COUNT,
-    REQUEST_DURATION,
     WEBSOCKET_CONNECTIONS,
     inc_db_operation,
     inc_rate_limit_hit,
@@ -48,7 +46,11 @@ class TestMetrics:
         inc_db_operation("chromadb", "add", "ok")
         inc_db_operation("neo4j", "search", "ok")
         inc_db_operation("chromadb", "add", "error")
-        samples = [s for s in DB_OPERATIONS.collect()[0].samples if s.name == "research_db_operations_total"]
+        samples = [
+            s
+            for s in DB_OPERATIONS.collect()[0].samples
+            if s.name == "research_db_operations_total"
+        ]
         assert len(samples) >= 3
 
     def test_rate_limit_hits_counter(self):
@@ -59,6 +61,7 @@ class TestMetrics:
 
     def test_metrics_endpoint_returns_plaintext(self):
         from prometheus_client import generate_latest
+
         output = generate_latest(REGISTRY).decode("utf-8")
         assert "# HELP" in output
         assert "# TYPE" in output
@@ -72,16 +75,20 @@ class TestMetrics:
     @pytest.mark.asyncio
     async def test_health_endpoint_enhanced(self):
         """Verify enhanced /health returns backend checks."""
-        from src.api.routes import router
         from fastapi import FastAPI
-        from httpx import AsyncClient, ASGITransport
+        from httpx import ASGITransport, AsyncClient
+
+        from src.api.routes import router
+
         app = FastAPI()
         import datetime
-        app.state.start_time = datetime.datetime.now(datetime.timezone.utc)
+
+        app.state.start_time = datetime.datetime.now(datetime.UTC)
         app.state.jobs = {}
         app.state.active_tasks = {}
         app.include_router(router, prefix="/api/v1")
         from src.api.websocket_manager import get_connection_manager
+
         # Mock backends to avoid real connections
         mgr = get_connection_manager()
         transport = ASGITransport(app=app)

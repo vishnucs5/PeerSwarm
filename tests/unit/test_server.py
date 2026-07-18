@@ -1,10 +1,11 @@
 """
 Tests for server lifecycle: startup checks, graceful shutdown.
 """
+
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -12,6 +13,7 @@ import pytest
 class TestStartupChecks:
     def test_all_keys_present_no_warnings(self):
         from src.api.server import _run_startup_checks
+
         app = MagicMock()
         with (
             patch("src.api.server.get_settings") as mock_settings,
@@ -25,12 +27,16 @@ class TestStartupChecks:
 
     def test_missing_keys_generate_warnings(self):
         from src.api.server import _run_startup_checks
+
         app = MagicMock()
         with (
             patch("src.api.server.get_settings") as mock_settings,
             patch("src.api.server.logger") as mock_logger,
         ):
-            mock_settings.return_value.validate_required_keys.return_value = ["OPENAI_API_KEY", "TAVILY_API_KEY"]
+            mock_settings.return_value.validate_required_keys.return_value = [
+                "OPENAI_API_KEY",
+                "TAVILY_API_KEY",
+            ]
             _run_startup_checks(app)
             assert mock_logger.warning.call_count == 2
 
@@ -39,6 +45,7 @@ class TestCancelPendingTasks:
     @pytest.mark.asyncio
     async def test_no_pending_tasks_logs_info(self):
         from src.api.server import _cancel_pending_tasks
+
         app = MagicMock()
         app.state.active_tasks = {}
         with patch("src.api.server.logger") as mock_logger:
@@ -48,6 +55,7 @@ class TestCancelPendingTasks:
     @pytest.mark.asyncio
     async def test_cancels_and_waits_for_tasks(self):
         from src.api.server import _cancel_pending_tasks
+
         app = MagicMock()
 
         async def slow_task():
@@ -68,7 +76,8 @@ class TestCancelPendingTasks:
 
     @pytest.mark.asyncio
     async def test_force_closes_stuck_tasks(self):
-        from src.api.server import _cancel_pending_tasks, SHUTDOWN_TIMEOUT
+        from src.api.server import SHUTDOWN_TIMEOUT, _cancel_pending_tasks
+
         app = MagicMock()
 
         async def stuck_task():
@@ -90,6 +99,7 @@ class TestLifespan:
     @pytest.mark.asyncio
     async def test_lifespan_startup_initializes_state(self):
         from src.api.server import lifespan
+
         app = MagicMock()
         app.state = MagicMock()
 
@@ -106,6 +116,7 @@ class TestLifespan:
     @pytest.mark.asyncio
     async def test_lifespan_sqlite_failure_logs_warning(self):
         from src.api.server import lifespan
+
         app = MagicMock()
         app.state = MagicMock()
 
@@ -122,6 +133,7 @@ class TestLifespan:
     @pytest.mark.asyncio
     async def test_lifespan_shutdown_cleans_websockets(self):
         from src.api.server import lifespan
+
         app = MagicMock()
         app.state = MagicMock()
         app.state.active_tasks = {}

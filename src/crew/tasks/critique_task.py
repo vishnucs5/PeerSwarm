@@ -1,6 +1,7 @@
 """
 Critique task - Critic evaluates synthesis quality and produces routing directives.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -20,16 +21,21 @@ class CritiqueTask:
     def __init__(self, critic_agent: CriticAgent):
         self.agent = critic_agent
 
-    def execute(self, synthesis: Synthesis, findings: list[ResearchFinding],
-                context: AgentContext | None = None,
-                previous_score: QualityScore | None = None,
-                quality_threshold: float = 8.0,
-                hard_gate_threshold: int = 6,
-                max_iterations: int = 3) -> QualityGateResult:
+    def execute(
+        self,
+        synthesis: Synthesis,
+        findings: list[ResearchFinding],
+        context: AgentContext | None = None,
+        previous_score: QualityScore | None = None,
+        quality_threshold: float = 8.0,
+        hard_gate_threshold: int = 6,
+        max_iterations: int = 3,
+    ) -> QualityGateResult:
         """Evaluate quality and determine routing action."""
         ctx = context or AgentContext(question=synthesis.question)
-        score = self.agent.execute(ctx, synthesis=synthesis, findings=findings,
-                                    previous_score=previous_score)
+        score = self.agent.execute(
+            ctx, synthesis=synthesis, findings=findings, previous_score=previous_score
+        )
         result = self.agent.route_quality(score, max_iterations=max_iterations)
         self._log_result(result)
         return result
@@ -43,6 +49,7 @@ class CritiqueTask:
     def to_crewai_task(self, crewai_agent) -> Any:
         try:
             from crewai import Task as CrewTask
+
             return CrewTask(
                 description="""Evaluate the quality of the research synthesis across multiple dimensions:
 1. Factual accuracy (0-10)
@@ -63,5 +70,6 @@ Determine if the synthesis should proceed to writing or be revised.""",
 def create_critique_task(critic: CriticAgent | None = None) -> CritiqueTask:
     if critic is None:
         from src.crew.agents import create_critic_agent
+
         critic = create_critic_agent()
     return CritiqueTask(critic)
